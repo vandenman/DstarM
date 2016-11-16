@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\nhw = c(19.5, 20, 15, 15, 17)/20\nlab = c(79/100, 80/115, 100/100)\nmd = 28/38\nfi = 23/44\n\n2.5*(mean(hw) + mean(lab) + md + fi)\n\n",
+    "created" : 1479232675266.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "2629812650",
+    "id" : "5D0387FF",
+    "lastKnownWriteTime" : 23081149961076847,
+    "last_content_update" : 1479232892610,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled7"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
