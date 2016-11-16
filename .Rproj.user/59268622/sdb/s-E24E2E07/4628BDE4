@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(xlsx) # for reading Excel\nmakeNum = function(x){\n  x = gsub(',', '', x)\n  return(as.numeric(gsub('.', '', x, fixed = TRUE)))\n}\n\ntb2012 = read.xlsx(\"Datasets/Olympics/Olympics.xlsx\", sheetIndex = 2)\ntb2012$Population = makeNum(tb2012$Population)\ntb2012$Population.per.Medal = makeNum(tb2012$Population.per.Medal)\n\ntb2016 = read.xlsx(\"Datasets/Olympics/Olympics.xlsx\", sheetIndex = 1)\ntb2016$Population = makeNum(tb2016$Population)\ntb2016$Population.per.Medal = makeNum(tb2016$Population.per.Medal)\n\n# remove countries that are unique to one olympic\nrm2012 = which(!(tb2012$Country %in% tb2016$Country))\nrm2016 = which(!(tb2016$Country %in% tb2012$Country))\ntb2012 = tb2012[-rm2012, ]\ntb2016 = tb2016[-rm2016, ]\n\n# drop unused factor levels -- redundant?\ntb2012$Country = droplevels(tb2012$Country)\ntb2016$Country = droplevels(tb2016$Country)\n\n# calc proper medals per pop\ntb2012$Population.per.Medal2 = round(tb2012$Population / tb2012$Medals)\ntb2016$Population.per.Medal2 = round(tb2016$Population / tb2016$Medals)\n\n# order tb2012 to tb2016\ntb2012 = tb2012[match(tb2016$Country, tb2012$Country), ]\n\n# drop outliers\nrm = tb2012$Population.per.Medal2 < 1e8 &\n     tb2016$Population.per.Medal2 < 1e8\n\ntb2012 = tb2012[rm, ]\ntb2016 = tb2016[rm, ]\n\n# should be both true\nall(tb2012$Country %in% tb2016$Country)\nall(tb2016$Country %in% tb2012$Country)\n\n# save data\nwrite.table(tb2012, file = \"Datasets/Olympics2012.txt\")\nwrite.table(tb2016, file = \"Datasets/Olympics2016.txt\")\n",
+    "created" : 1479292686923.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2301434703",
+    "id" : "4628BDE4",
+    "lastKnownWriteTime" : 1479294517,
+    "last_content_update" : 1479294517173,
+    "path" : "C:/Users/donvd/_Laptop/ResMas/Conference/TquanT/Shiny/JamesSteinRemake/Datasets/RDP/RDP_Olympics.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 8,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,7 @@
+{
+    "installOptions" : {
+        "installDependencies" : true,
+        "installFromRepository" : false,
+        "libraryPath" : "C:/Users/donvd/OneDrive/Documenten/R/win-library/3.3"
+    }
+}

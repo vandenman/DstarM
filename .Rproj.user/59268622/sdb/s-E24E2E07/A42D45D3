@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "a = letters[3]\nswitch(a,\n       \"1\" = 2,\n       \"a\" = 4,\n       5)\n\nTRUE || FALSE && NA\n\nTRUE || NA\nNA || TRUE\n",
+    "created" : 1479208099187.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "4115910088",
+    "id" : "A42D45D3",
+    "lastKnownWriteTime" : 23081149961076847,
+    "last_content_update" : 1479208550524,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled6"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
