@@ -1,3 +1,3 @@
 "# DstarM" 
 
-R package DstarM. These files may contain bugs.
+R package DstarM. This is the development version and may contain bugs.
