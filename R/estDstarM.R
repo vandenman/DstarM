@@ -409,12 +409,12 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
     colnames(m) = names(rt)
   } else {
     var.m = NULL
-    warning('Solution contained improper pdfs. No decision model distributions have been saved. Perhaps rerun the analysis with a more a narrow time grid.',
+    warning("Solution contained improper pdfs. No decision model distributions have been saved. Perhaps rerun the analysis with a more a narrow time grid.",
             immediate. = TRUE, call. = FALSE)
   }
   out[c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
-        'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h')] =
-    list(tt, g, m, ncondition, var.data, var.m, restr.mat, splits, n, DstarM, fun.density, fun.dist, h)
+        'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist")] =
+    list(tt, g, m, ncondition, var.data, var.m, restr.mat, splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist)
   class(out) = 'DstarM'
   return(out)
 }
@@ -673,6 +673,6 @@ imposeFixations = function(fixed, pars) {
   return(pars)
 }
 
-is.DstarM = function(x) class(x) == 'DstarM'
+is.DstarM = function(x) identical(class(x) == 'DstarM')
 
 

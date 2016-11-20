@@ -2,6 +2,7 @@
 #'
 #' @param resDecision output of \code{\link{estDstarM}}.
 #' @param resND output of \code{\link{estND}}.
+#' @param Data Optional. If the data used to estimate the decision model is supplied additional fitmeasures are calculated.
 #'
 #' @description Estimates the density of the observed data by convoluting the estimated decision distributions
 #' with the estimated nondecision distributions. If a traditional analysis was run the argument resND can
@@ -51,7 +52,7 @@
 #'}
 
 #' @export
-estObserved = function(resDecision, resND) {
+estObserved = function(resDecision, resND, data = NULL) {
   if (!is.DstarM(resDecision)) {
     stop('Argument resDecision must be of class "DstarM".', call. = FALSE)
   }
@@ -61,8 +62,33 @@ estObserved = function(resDecision, resND) {
       stop('Argument resND must be of class "DstarM".', call. = FALSE)
     }
 
+    # get time grids
+    ttDec = resDecision$tt
+    ttND = resND$tt
+
+    # get model densities --if they don't match recalculate model densities at ttND
+    if (length(ttDec) != length(ttND) || !isTRUE(all.equal(ttDec, ttND))) {
+      message("Decision model and Nondecision model estimated at different time grids. Recalculating decision model with time grid of nondecision model.")
+
+      tt = ttND
+      # perhaps put in a function, also used in estDstarM()
+      mm = matrix(0, resDecision$ncondition * 2, resDecision$ncondition)
+      mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] = 1
+
+      pars = resDecision$Bestvals[c(resDecision$restr.mat)]
+      dim(pars) = dim(resDecision$restr.mat)
+      pars.list = unlist(apply(pars, 2, list), recursive = FALSE)
+      args.density = resDecision$args.density
+
+      if (is.null(args.density)) args.density = list() # for backwards compatability with 0.1.0
+      dd = getPdf(pars.list = pars.list, tt = ttND, DstarM = resDecision$DstarM,
+                  mm = mm,oscPdf = FALSE, fun.density = resDecision$fun.density,
+                  args.density = args.density)
+    } else {
+      dd = resDecision$modelDist
+    }
+
     nd = resND$r.hat[dim(resND$r.hat)[1L]:1, , drop = FALSE]
-    dd = resDecision$modelDist
     splits = resDecision$splits
 
     # error handling
@@ -72,10 +98,10 @@ estObserved = function(resDecision, resND) {
       stop(sprintf('%s nondecision distributions (%d) than were assumed while estimating the decision model (%d).',
                    sign, as.integer(dim(nd)[2L]), as.integer(length(unique(splits)))), call. = FALSE)
     }
-    if (dim(nd)[1L] != dim(dd)[1L]) {
-      stop(sprintf('resDecision$modelDist (%d) must have equal rows as resND$r.hat (%d).',
-                   dim(dd)[1L], dim(nd)[1L]), call. = FALSE)
-    }
+    # if (dim(nd)[1L] != dim(dd)[1L]) { # differ
+    #   stop(sprintf('resDecision$modelDist (%d) must have equal rows as resND$r.hat (%d).',
+    #                dim(dd)[1L], dim(nd)[1L]), call. = FALSE)
+    # }
 
     # assign indices for nds to match dds
     # this converts splits from whatever it is to 1, 2, ...
@@ -89,18 +115,20 @@ estObserved = function(resDecision, resND) {
     for (i in 1:dim(dd)[2L]) {
       obs[, i] = customConvolveO(dd[, i], by*nd[, idxND[i]])[idxC]
     }
-    # What to do with this???
-    # non approximated convolutions after all?
+    # non approximated convolutions after all
     obs[obs <= 0] = 0 #.Machine$double.xmin
 
     fitND = sapply(resND$GlobalOptimizer, function(x) x$optim$bestval)
     fitDD = resDecision$GlobalOptimizer$optim$bestval
-    fit = list(total = fitND + fitDD,
-               Decision = fitDD,
+    fit = list(Decision = fitDD,
                ND = fitND)
+    if (!is.null(data)) {
+      fit$chisq = chisqFit(obs, data = data)
+    }
   } else { # traditional analysis
+    tt = resDecision$tt
     obs = resDecision$modelDist
-    fit = list(total = resDecision$GlobalOptimizer$optim$bestval)
+    fit = list(chisq = resDecision$GlobalOptimizer$optim$bestval)
   }
   cor = apply(obs, 2, simpson, x = tt)
   obsNorm = obs %*% (diag(dim(obs)[2L]) / cor)
@@ -109,7 +137,7 @@ estObserved = function(resDecision, resND) {
   # observe any not observed conditions, makes later plotting easier
   obsIdx = which(colSums(resDecision$g.hat) == 0)
   res = list(obsNorm = obsNorm, obs = obs, tt = tt, fit = fit, npar = npar,
-             obsIdx = obsIdx)
+             obsIdx = obsIdx, ncondition = resDecision$ncondition)
   class(res) = 'DstarM'
   return(res)
 }
