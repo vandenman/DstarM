@@ -4,12 +4,14 @@
 \alias{estObserved}
 \title{Estimate observed data density}
 \usage{
-estObserved(resDecision, resND)
+estObserved(resDecision, resND, data = NULL)
 }
 \arguments{
 \item{resDecision}{output of \code{\link{estDstarM}}.}
 
 \item{resND}{output of \code{\link{estND}}.}
+
+\item{Data}{Optional. If the data used to estimate the decision model is supplied additional fitmeasures are calculated.}
 }
 \value{
 a list (S3 object of class 'DstarM') that contains:
