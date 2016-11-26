@@ -5,6 +5,13 @@
 #' @param ncr The number of observations per condition-response pair. This is used to weight the objective function. Should only be supplied when data is a matrix containing custom densities.
 #' @param DstarM Logical. Should the DstarM fit measure be calculated or the traditional fit measure?
 #'
+#' @details This function allows a user to manually calculate a chi-square goodness of fit measure for a model.
+#' This is usefull to comparing a traditional analysis and a D*M analysis. For completion, this function can also calculate a
+#' D*M fit measure. We do not recommend usage of the D*M measure. While the chi-square fit measure is
+#' identical to the value of the optimizer when fitting, the DstarM fit measure is not equal to that of a DstarM analysis.
+#' This is because this function calculates the DstarM fit measure on the complete distribution, not on the
+#' model distributions, as is done during the optimization.
+#'
 #' @examples
 #' tt = seq(0, 5, .1)
 #'pars = c(.8, 2, .5, .5, .5, # condition 1
@@ -77,7 +84,7 @@ chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE) {
   return(list(sum = sum(out), chisq = out))
 }
 
-
+# todo: allow for input of modeldist?
 
 
 # obsDstarM$obsNorm
@@ -90,4 +97,5 @@ chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE) {
 
 # chisqFit(obsDstarM, data = df, DstarM = FALSE)
 # chisqFit(obsDstarM, data = df, DstarM = TRUE)$sum
+# chisqFit(resDstarM$modelDist, data = df, DstarM = TRUE)$sum
 # obsDstarM$fit

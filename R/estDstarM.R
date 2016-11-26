@@ -673,6 +673,6 @@ imposeFixations = function(fixed, pars) {
   return(pars)
 }
 
-is.DstarM = function(x) identical(class(x) == 'DstarM')
+is.DstarM = function(x) identical(class(x), 'DstarM')
 
 
