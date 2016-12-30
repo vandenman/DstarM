@@ -36,7 +36,9 @@ estCdf = function(x) {
     }
   }
   if (is.matrix(x)) {
-    return(apply(x, 2, estCdf))
+    out = apply(x, 2, estCdf)
+    colnames(out) = colnames(x)
+    return(out)
   } else {
     return(cumsum(x) / sum(x))
   }
