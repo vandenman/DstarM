@@ -14,9 +14,11 @@ getPdfs(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density,
 
 \item{pars}{Model parameters, can be a matrix where every column is a set of parameters.}
 
+\item{DstarM}{Logical. Do the model pdfs also describe the nondecision distribution?}
+
 \item{fun.density}{density function to calculate pdfs from.}
 
-\item{arg.density}{Additional arguments for fun.density}
+\item{args.density}{Additional arguments for fun.density}
 }
 \value{
 A matrix containing model pdfs.

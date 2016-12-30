@@ -3,8 +3,9 @@
 #' @param resDecision output of \code{\link{estDstarM}}.
 #' @param tt Time grid to calculate the model densities on.
 #' @param pars Model parameters, can be a matrix where every column is a set of parameters.
+#' @param DstarM Logical. Do the model pdfs also describe the nondecision distribution?
 #' @param fun.density density function to calculate pdfs from.
-#' @param arg.density Additional arguments for fun.density
+#' @param args.density Additional arguments for fun.density
 #'
 #' @description This function is a convenience function for calculating model pdfs for
 #' multiple sets of parameters at a specified timegrid. If \code{resDecision} is supplied,

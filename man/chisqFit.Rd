@@ -4,8 +4,8 @@
 \alias{chisqFit}
 \title{Calculate model fit}
 \usage{
-chisqFit(resObserved, data, ncr = NULL, DstarM = FALSE, tt = NULL,
-  m = NULL, by = NULL)
+chisqFit(resObserved, data, ncr = NULL, DstarM = FALSE, m = NULL,
+  tt = NULL)
 }
 \arguments{
 \item{resObserved}{output from \code{\link{estObserved}}.}
@@ -15,12 +15,16 @@ chisqFit(resObserved, data, ncr = NULL, DstarM = FALSE, tt = NULL,
 \item{ncr}{The number of observations per condition-response pair. This is used to weight the objective function. Should only be supplied when data is a matrix containing custom densities.}
 
 \item{DstarM}{Logical. Should the DstarM fit measure be calculated or the traditional fit measure?}
+
+\item{m}{A matrix containing custom model densities to be used. If supplied then resObserved should be missing and tt should be given.}
+
+\item{tt}{time grid of the custom model densities. If supplied then resObserved should be missing and m should be given.}
 }
 \description{
 Calculate model fit
 }
 \details{
-This function allows a user to manually calculate a chi-square goodness of fit measure for a model.
+This function allows a user to manually calculate a chi-square goodness of fit measure for model densities.
 This is useful for comparing a traditional analysis and a D*M analysis. For completion, this function can also calculate a
 D*M fit measure. We do not recommend usage of the D*M measure. While the chi-square fit measure is
 identical to the value of the optimizer when fitting, the DstarM fit measure is not equal to that of a DstarM analysis.

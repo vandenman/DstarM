@@ -2,9 +2,9 @@
 #'
 #' @param resDecision output of \code{\link{estDstarM}}.
 #' @param resND output of \code{\link{estND}}.
-#' @param Data Optional. If the data used to estimate the decision model is supplied
+#' @param data Optional. If the data used to estimate the decision model is supplied
 #' additional fitmeasures are calculated.
-#' @param interpolate Logical. If the decision model and nondecision model have been
+#' @param interpolateND Logical. If the decision model and nondecision model have been
 #' estimated on different time grids, should the rougher time grid be interpolated to
 #' match the smaller grid? If FALSE (the default) the decision model will be recalculated
 #' on the grid of the nondecision model. This tends to produce better fit values.
@@ -106,7 +106,7 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
     if (reCalcND) {
       nd2 = matrix(nrow = length(ttDec), ncol = ncol(nd))
       for (i in 1:ncol(nd)) {
-        nd2[, i] = approx(x = ttND, y = nd[, i], xout = ttDec)$y
+        nd2[, i] = stats::approx(x = ttND, y = nd[, i], xout = ttDec)$y
       }
       nd = nd2
     }

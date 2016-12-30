@@ -4,6 +4,12 @@
 #' a column named \code{response} containing at most 2 response options, and an
 #' optional column named \code{condition} containing a numeric index as to which conditions
 #' observations belong.
+#' @param probs vector of probabilities for which the corresponding values should be called
+#' @param what Character. \code{"cr"} if the quantiles are to be calculated per condition-response
+#' pair, \code{"c"} if the quantiles are to be calculated per condition, and
+#' \code{"r"} if the quantiles are to be calculated per response.
+#'
+#' @description This function is nothing but a wrapper for \code{\link{quantile}}.
 #'
 #' @examples
 #'tt = seq(0, 5, .01)
@@ -14,11 +20,11 @@
 #'# simulate data
 #'data = simData(n = 3e3, pars = pars, tt = tt, pdfND = pdfND)
 #'probs = seq(0, 1, .01)
-#'obsQuantiles(data)
-#'matplot(tt, obsQuantiles, type = 'l')
+#'q = obsQuantiles(data, probs = probs)
+#'matplot(probs, q, type = 'l', las = 1, bty = 'n')
 
 #' @export
-obsQuantiles = function(data, probs, what = "cr") {
+obsQuantiles = function(data, probs = seq(0, 1, .01), what = "cr") {
   # error handling
   stopifnot(c('rt', 'response') %in% names(data))
   stopifnot(is.numeric(data$rt))
