@@ -140,12 +140,12 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
   if (missing(lower) | missing(upper)) {
     if (DstarM) {
       parnames =  c('a', 'v', 'z', 'sz', 'sv')
-      lower =     c(.01, -6,  .05,   0,    0)
-      upper =     c(  2,  6,  .95, .99,   10)
+      lower =     c(.01, -6,  .05,  .01,   0)
+      upper =     c(  2,  6,  .95,  .99,  10)
     } else {
-      parnames =  c('a','v','t0','z', 'sz', 'sv', 'st0')
-      lower =     c(.5, -5,  .1, .05,   0,    0,    0)
-      upper =     c( 2,  5,  .8, .95, .99,   10,    1)
+      parnames =  c('a', 'v', 't0',  'z', 'sz', 'sv', 'st0')
+      lower =     c(.01,  -6,   .1,  .05,  .01,    0,    0)
+      upper =     c(  2,   6,   .8,  .95,  .99,   10,    1)
     }
   } else {
     stopifnot(length(lower) ==  length(upper), all(lower < upper))
@@ -380,8 +380,6 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
     }
     # gather relevant output
     Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem)
-    # turn restr.mat back into a matrix
-    # restr.mat = do.call(cbind, restr.mat)
     # calculate model densities at parameter estimates
     pars = Bestvals[c(restr.mat)] # extract all parameters
     # dim(pars) = dim(restr.mat)
@@ -485,6 +483,7 @@ getPdf = function(pars.list, tt, DstarM, mm, oscPdf = TRUE,
       return(NULL)
     } # if they all pass oscCheck
   }
+
   cor = 1 / apply(pdf %*% mm, 2, simpson, x = tt) # ensure pdfs integrate to 1.
   if (any(is.infinite(cor))) { # return NULL if pdfs are gibberish.
     return(NULL)

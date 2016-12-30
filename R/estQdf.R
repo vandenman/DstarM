@@ -25,7 +25,9 @@
 #' @export
 estQdf = function(p, x, cdf) {
   if (is.matrix(cdf)) {
-    return(apply(cdf, 2, estQdf, p = p, x = x))
+    out = apply(cdf, 2, estQdf, p = p, x = x)
+    colnames(out) = colnames(cdf)
+    return(out)
   } else if (is.vector(cdf, mode = 'numeric')) {
     stopifnot(c(0, 1) %in% p)
     q = numeric(length = length(p))

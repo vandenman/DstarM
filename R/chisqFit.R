@@ -4,9 +4,10 @@
 #' @param data Either a dataframe containing data used for estimating the models or a matrix containing custom densities used for estimating.
 #' @param ncr The number of observations per condition-response pair. This is used to weight the objective function. Should only be supplied when data is a matrix containing custom densities.
 #' @param DstarM Logical. Should the DstarM fit measure be calculated or the traditional fit measure?
-#'
-#' @details This function allows a user to manually calculate a chi-square goodness of fit measure for a model.
-#' This is usefull to comparing a traditional analysis and a D*M analysis. For completion, this function can also calculate a
+#' @param m A matrix containing custom model densities to be used. If supplied then resObserved should be missing and tt should be given.
+#' @param tt time grid of the custom model densities. If supplied then resObserved should be missing and m should be given.
+#' @details This function allows a user to manually calculate a chi-square goodness of fit measure for model densities.
+#' This is useful for comparing a traditional analysis and a D*M analysis. For completion, this function can also calculate a
 #' D*M fit measure. We do not recommend usage of the D*M measure. While the chi-square fit measure is
 #' identical to the value of the optimizer when fitting, the DstarM fit measure is not equal to that of a DstarM analysis.
 #' This is because this function calculates the DstarM fit measure on the complete distribution, not on the
@@ -33,10 +34,26 @@
 #'}
 #'
 #' @export
-chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE) {
-  tt = resObserved$tt
-  m = resObserved$obs
-  by = unique(zapsmall(diff(tt)))
+chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE, m = NULL, tt = NULL) {
+
+  if (!missing(resObserved)) {
+    if (!is.DstarM(resObserved)) {
+      stop("resObserved must be output from estObserved.")
+    }
+
+    tt = resObserved$tt # time grid
+    m = resObserved$obs # model implied densities
+
+  } else if (any(is.null(tt), is.null(m))) {
+    stop("Please supply either resObserved, or tt and m.")
+  }
+
+  by = unique(zapsmall(diff(tt))) # stepsize of time grid
+
+  if (length(by) != 1) {
+    stop('Time grid tt must be equally spaced and length(unique(zapsmall(diff(tt)))) == 1 must be TRUE.',
+         call. = FALSE)
+  }
 
   if (is.data.frame(data)) { # assume raw data
     ncondition = max(c(1, length(unique(data$condition)))) # get number of conditions
@@ -65,9 +82,9 @@ chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE) {
     ql = ncr # TODO fix this naming and call ql everywhere ncr.
   }
   if (DstarM) {
-    tmp = 1:(ncol(obs)-1)
+    tmp = 1:(ncol(m)-1)
     ii = rep(tmp, times = rev(tmp))
-    jj = unlist(lapply(tmp, function(x, m) (x+1):m, m = ncol(obs)))
+    jj = unlist(lapply(tmp, function(x, m) (x+1):m, m = ncol(m)))
     out = numeric(length(ii))
     for (l in 1:length(ii)) {
         a = customConvolveO(g[, ii[l]], by * rev(m[, jj[l]]))[seq_along(tt)]
@@ -76,26 +93,12 @@ chisqFit = function(resObserved, data, ncr = NULL, DstarM = FALSE) {
     }
 
   } else {
-    out = numeric(ncol(obs))
-    for (i in 1:ncol(obs)) {
+    out = numeric(ncol(m))
+    for (i in 1:ncol(m)) {
       out[i] = chisq(tt = tt, a = m[, i], b = g[, i]) * 100 * ql[i] / sum(ql)
     }
   }
   return(list(sum = sum(out), chisq = out))
 }
 
-# todo: allow for input of modeldist?
 
-
-# obsDstarM$obsNorm
-# apply(obsTraditional$obsNorm, 2, DstarM:::simpson, x = obsTraditional$tt)
-#
-#
-# chisqFit(obsTraditional, data = df)
-# chisqFit(obsTraditional, data = df, DstarM = TRUE)$sum
-# obsTraditional$fit
-
-# chisqFit(obsDstarM, data = df, DstarM = FALSE)
-# chisqFit(obsDstarM, data = df, DstarM = TRUE)$sum
-# chisqFit(resDstarM$modelDist, data = df, DstarM = TRUE)$sum
-# obsDstarM$fit
