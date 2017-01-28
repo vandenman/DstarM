@@ -4,21 +4,16 @@
 \alias{chisqFit}
 \title{Calculate model fit}
 \usage{
-chisqFit(resObserved, data, ncr = NULL, DstarM = FALSE, m = NULL,
-  tt = NULL)
+chisqFit(resObserved, data, DstarM = FALSE, tt = NULL)
 }
 \arguments{
-\item{resObserved}{output from \code{\link{estObserved}}.}
+\item{resObserved}{either output from \code{\link{estObserved}} or a matrix containing custom densities to calculate the fitness for.}
 
-\item{data}{Either a dataframe containing data used for estimating the models or a matrix containing custom densities used for estimating.}
-
-\item{ncr}{The number of observations per condition-response pair. This is used to weight the objective function. Should only be supplied when data is a matrix containing custom densities.}
+\item{data}{A dataframe containing data.}
 
 \item{DstarM}{Logical. Should the DstarM fit measure be calculated or the traditional fit measure?}
 
-\item{m}{A matrix containing custom model densities to be used. If supplied then resObserved should be missing and tt should be given.}
-
-\item{tt}{time grid of the custom model densities. If supplied then resObserved should be missing and m should be given.}
+\item{tt}{time grid custom densities where calculated on. Should only be supplied if \code{resOberved} is a matrix containing custom densities}
 }
 \description{
 Calculate model fit
@@ -34,22 +29,28 @@ model distributions, as is done during the optimization.
 \examples{
 tt = seq(0, 5, .1)
 pars = c(.8, 2, .5, .5, .5, # condition 1
-        .8, 3, .5, .5, .5,  # condition 2
-        .8, 4, .5, .5, .5)  # condition 3
+         .8, 3, .5, .5, .5,  # condition 2
+         .8, 4, .5, .5, .5)  # condition 3
 pdfND = dbeta(tt, 10, 30)
+
 # simulate data
-data = simData(n = 3e3, pars = pars, tt = tt, pdfND = pdfND)
-# define restriction matrix
+allDat = simData(n = 3e3, pars = pars, tt = tt, pdfND = pdfND, return.pdf = TRUE)
+truePdf = allDat$pdfUnnormalized
+dat = allDat$dat
+chisqFit(resObserved = truePdf, data = dat, tt = tt)
+\dontrun{
+# estimate it
+define restriction matrix
 restr = matrix(1:5, 5, 3)
 restr[2, 2:3] = 6:7 # allow drift rates to differ
-# fix variance parameters
-fixed = matrix(c('sz1', .5, 'sv1', .5), 2, 2)
-\dontrun{
-# Run D*M analysis
-res = estDstarM(data = data, tt = tt, restr = restr, fixed = fixed)
-coef(res)
-summary(res)
-}
+# fix parameters for speed up
+fixed = matrix(c("z1", "a1 / 2", 'sz1', .5, 'sv1', .5), 2, 3)
+resD = estDstarM(data = dat, tt = tt, restr = restr, fixed = fixed,
+                 Optim = list(parallelType = 1))
+resN = estND(resD, Optim = list(parallelType = 1))
 
+resO = estObserved(resD, resN, data = dat)
+resO$fit # proper fit
+}
 }
 

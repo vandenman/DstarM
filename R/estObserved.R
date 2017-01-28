@@ -8,6 +8,7 @@
 #' estimated on different time grids, should the rougher time grid be interpolated to
 #' match the smaller grid? If FALSE (the default) the decision model will be recalculated
 #' on the grid of the nondecision model. This tends to produce better fit values.
+#' @param tt Optional time grid to recalculate the model densities on. Unused in case of a DstarM analysis.
 #' @description Estimates the density of the observed data by convoluting the estimated decision distributions
 #' with the estimated nondecision distributions. If a traditional analysis was run the argument resND can
 #' be omitted.
@@ -56,11 +57,11 @@
 #'}
 
 #' @export
-estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
+estObserved = function(resDecision, resND = NULL, data = NULL, interpolateND = FALSE, tt = NULL) {
   if (!is.DstarM(resDecision)) {
     stop('Argument resDecision must be of class "DstarM".', call. = FALSE)
   }
-  tt = resDecision$tt
+
   fit = list()
 
   if (resDecision$DstarM) {
@@ -68,37 +69,34 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
       stop('Argument resND must be of class "DstarM".', call. = FALSE)
     }
 
+    if (!is.null(tt)) {
+      warning("The time grid (argument tt) cannot be modified after a DstarM analysis.")
+    }
+
     # get time grids
     ttDec = resDecision$tt
-    ttND = resND$tt
+    tt = resND$tt # everything will be conformed to nondecision grid
+
     reCalcND = FALSE
 
-    # get model densities --if they don't match recalculate model densities at ttND
-    if (length(ttDec) != length(ttND) || !isTRUE(all.equal(ttDec, ttND))) {
-      if (interpolateND){
+    # get model densities --if they don't match recalculate model densities at tt
+    if (length(ttDec) != length(tt) || !isTRUE(all.equal(ttDec, tt))) {
+      if (interpolateND){ # interpolate nondecision model
+
         message("Decision model and Nondecision model estimated at different time grids. Interpolating Nondecision model to time grid of decision model.")
         reCalcND = TRUE
         dd = resDecision$modelDist
-      } else {
+
+      } else { # recalculate decision model at new grid
+
         message("Decision model and Nondecision model estimated at different time grids. Recalculating decision model with time grid of nondecision model.")
+        dd = getPdfs(resDecision = resDecision, tt = tt, DstarM = TRUE)
 
-        tt = ttND
-        # perhaps put in a function, also used in estDstarM()
-        mm = matrix(0, resDecision$ncondition * 2, resDecision$ncondition)
-        mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] = 1
-
-        pars = resDecision$Bestvals[c(resDecision$restr.mat)]
-        dim(pars) = dim(resDecision$restr.mat)
-        pars.list = unlist(apply(pars, 2, list), recursive = FALSE)
-        args.density = resDecision$args.density
-
-        if (is.null(args.density)) args.density = list() # for backwards compatability with 0.1.0
-        dd = getPdf(pars.list = pars.list, tt = ttND, DstarM = resDecision$DstarM,
-                    mm = mm,oscPdf = FALSE, fun.density = resDecision$fun.density,
-                    args.density = args.density)
       }
-    } else {
+    } else { # get model pdfs from input
+
       dd = resDecision$modelDist
+
     }
 
     nd = resND$r.hat
@@ -106,7 +104,7 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
     if (reCalcND) {
       nd2 = matrix(nrow = length(ttDec), ncol = ncol(nd))
       for (i in 1:ncol(nd)) {
-        nd2[, i] = stats::approx(x = ttND, y = nd[, i], xout = ttDec)$y
+        nd2[, i] = stats::approx(x = tt, y = nd[, i], xout = ttDec)$y
       }
       nd = nd2
     }
@@ -119,10 +117,6 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
       stop(sprintf('%s nondecision distributions (%d) than were assumed while estimating the decision model (%d).',
                    sign, as.integer(dim(nd)[2L]), as.integer(length(unique(splits)))), call. = FALSE)
     }
-    # if (dim(nd)[1L] != dim(dd)[1L]) { # differ
-    #   stop(sprintf('resDecision$modelDist (%d) must have equal rows as resND$r.hat (%d).',
-    #                dim(dd)[1L], dim(nd)[1L]), call. = FALSE)
-    # }
 
     # assign indices for nds to match dds
     # this converts splits from whatever it is to 1, 2, ...
@@ -142,15 +136,25 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
     fit$ND = sapply(resND$GlobalOptimizer, function(x) x$optim$bestval)
     fit$Decision = resDecision$GlobalOptimizer$optim$bestval
   } else { # traditional analysis
-    tt = resDecision$tt
-    obs = resDecision$modelDist
+    if (is.null(tt)) {
+
+      tt = resDecision$tt
+      obs = resDecision$modelDist
+
+    } else {
+
+      obs = getPdfs(resDecision, tt, DstarM = resDecision$DstarM)
+
+    }
   }
   if (!is.null(data)) {
-    tmp = list(obs = obs, tt = tt, ncondition = resDecision$ncondition)
-    class(tmp) = "DstarM"
-    fit$chisq = chisqFit(resObserved = tmp, data = data)
+
+    fit$chisq = chisqFit(resObserved = obs, data = data, tt = tt)
+
   } else if (!resDecision$DstarM) {
+
     fit = resDecision$GlobalOptimizer$optim$bestval
+
   }
 
   cor = apply(obs, 2, simpson, x = tt)
@@ -161,8 +165,10 @@ estObserved = function(resDecision, resND, data = NULL, interpolateND = FALSE) {
   # observe any not observed conditions, makes later plotting easier
   obsIdx = which(colSums(resDecision$g.hat) == 0)
   res = list(obsNorm = obsNorm, obs = obs, tt = tt, fit = fit, npar = npar,
-             obsIdx = obsIdx, ncondition = resDecision$ncondition)
-  class(res) = 'DstarM'
+             obsIdx = obsIdx, ncondition = resDecision$ncondition,
+             resDecision = resDecision, resND = resND,
+             interpolateND = interpolateND)
+  class(res) = "DstarM"
   return(res)
 }
 
