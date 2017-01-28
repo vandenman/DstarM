@@ -272,6 +272,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
                   forceRestriction = forceRestriction, by = by)
 
   if (missing(pars)) { # change to is is.null(pars)?
+
     if (length(fixed)) {
       # remove fixed parameters
       indFixed = which(names(lower) %in%  fixed[1L, ]) # get parameter indices to remove
@@ -286,9 +287,11 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
       upper = upper[-indFixed]
       replacement = sapply(strsplit(fixed[2, ], ' '), `[[`, 1) # finds first value; extend to ' ' and */+- ? # does this equal making stuff in the restr.mat in the same column equal?
       fixedMat = rbind(fixed, replacement)
-      fixed = list(fixedMat = fixedMat, indFixed = indFixed)
+      fixed = list(fixedMat = fixedMat, indFixed = indFixed,
+                   isNumeric = suppressWarnings(!is.na(as.numeric(fixedMat[3, ]))))
     }
     argsList$fixed = fixed
+
     # do differential evolution
     nrep = ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) - 1)])) / Optim$steptol[length(Optim$steptol)])
     if (nrep <= 1L) {
@@ -352,8 +355,10 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
         newval = out$optim$bestval
 
         improvement = oldval - newval
+
         # print progress
-        tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem)
+        tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
+        names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixedMat[1, ]
         replicate(prevSize,  cat('\010'))
         msg1 = utils::capture.output(
           cat(sprintf('Total iterations done: %s \012Improvement over last %s iterations: %10g \012Objective function value: %10g \012Current parameter estimates:\012',
@@ -369,17 +374,20 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
         }
       }
       niter = sum(Optim$steptol[1:i])
-    } else {
-      # do DEoptim with build in convergence
+
+    } else { # do DEoptim with build in convergence
+
       argsList$control$itermax = Optim$itermax
       argsList$control$steptol = Optim$steptol[1]
       argsList$control$reltol = Optim$reltol
       out = do.call(DEoptim::DEoptim, argsList)
       niter = out$optim$iter
       nfeval = out$optim$nfeval
+
     }
+
     # gather relevant output
-    Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem)
+    Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
     # calculate model densities at parameter estimates
     pars = Bestvals[c(restr.mat)] # extract all parameters
     # dim(pars) = dim(restr.mat)
@@ -387,14 +395,17 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
     out = list(Bestvals = Bestvals, fixed = fixed, GlobalOptimizer = out,
                Debug = list(niter = niter, nfeval = nfeval, itermax = Optim$itermax),
                note = note)
+
     if (verbose) {
       cat('\nAnalyses complete!\n')
     }
+
   } else { # calculate the objective function for a given set of parameters
+
     argsList$pars = pars
     argsList$all = TRUE
-    out = list(objVals = do.call(total.objective, argsList),
-               pars = pars, Bestvals = pars)
+    out = list(objVals = do.call(total.objective, argsList), pars = pars, Bestvals = pars)
+
   }
   # calculate model densities at parameter estimates
   dim(pars) = dim(restr.mat)
@@ -613,7 +624,8 @@ total.objective = function(pars, tt, g, ql, restr.mat,
                            fun.density, args.density,
                            fun.dist, args.dist, var.data, parnames = NULL, by) {
   # impose parameter fixations
-  pars = imposeFixations(fixed = fixed, pars = pars)
+  # browser()
+  pars = imposeFixations(fixed = fixed, pars = pars, parnames = parnames)
   # get all unique parameter configurations taking restrictions into account
   pars.list = lapply(restr.mat, function(ind, pars) pars[ind], pars)
 
@@ -656,20 +668,33 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 }
 
 # imposes fixations from fixed onto pars
-imposeFixations = function(fixed, pars) {
+imposeFixations = function(fixed, pars, parnames) {
+
   if (length(fixed)) {
-    for (i in 1L:length(fixed$indFixed)) { # loop of everything to be looked up
-      replacement = pars[which(names(pars) == fixed$fixedMat[3L, i])][1L] # try to look up value by name (i.e. when z = a/2)
-      if (is.na(replacement)) { # if na it must be fixed to a value
-        replacement = fixed$fixedMat[3L, i]
+    for (i in 1L:length(fixed$indFixed)) { # loop over everything to be looked up
+
+      if (fixed$isNumeric[i]) { # numeric replacement
+
+        insert = as.numeric(fixed$fixedMat[3L, i])
+
+      } else { # expression (i.e. z = a/2)
+
+        replacement = pars[which(parnames == fixed$fixedMat[3L, i])][1L]
+        insert = eval(parse(text = gsub(pattern = fixed$fixedMat[3L, i],
+                                        replacement = replacement,
+                                        x = fixed$fixedMat[2L, i])))
+
       }
+
       # execute operation to which parameter was fixed
-      insert = eval(parse(text = gsub(pattern = fixed$fixedMat[3L, i], replacement = replacement, x = fixed$fixedMat[2L, i])))
+
       pars = append(pars, insert, fixed$indFixed[i] - 1L) # append fixations to parameter vector
-      names(pars)[fixed$indFixed[i]] = fixed$fixedMat[1L, i] # add names to parameter vector
+      # names(pars)[fixed$indFixed[i]] = fixed$fixedMat[1L, i] # add names to parameter vector
     }
   }
+
   return(pars)
+
 }
 
 is.DstarM = function(x) identical(class(x), 'DstarM')

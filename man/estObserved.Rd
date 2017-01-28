@@ -4,7 +4,8 @@
 \alias{estObserved}
 \title{Estimate observed data density}
 \usage{
-estObserved(resDecision, resND, data = NULL, interpolateND = FALSE)
+estObserved(resDecision, resND = NULL, data = NULL, interpolateND = FALSE,
+  tt = NULL)
 }
 \arguments{
 \item{resDecision}{output of \code{\link{estDstarM}}.}
@@ -18,6 +19,8 @@ additional fitmeasures are calculated.}
 estimated on different time grids, should the rougher time grid be interpolated to
 match the smaller grid? If FALSE (the default) the decision model will be recalculated
 on the grid of the nondecision model. This tends to produce better fit values.}
+
+\item{tt}{Optional time grid to recalculate the model densities on. Unused in case of a DstarM analysis.}
 }
 \value{
 a list (S3 object of class 'DstarM') that contains:

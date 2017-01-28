@@ -72,6 +72,10 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
   # these will be forced to 0 after the estimation procedure
   stopifnot(is.DstarM(res))
 
+  if (xor(is.null(tt), is.null(data))) {
+    stop("Supply both a time grid and the data to calculate the nondecision model at a custom time grid. Only one was supplied.")
+  }
+
   ncondition = res$ncondition
   if (!any(is.null(tt), is.null(data))) {
     by = unique(zapsmall(diff(tt)))

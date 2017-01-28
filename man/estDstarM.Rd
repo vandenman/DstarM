@@ -38,7 +38,7 @@ In addition, if \code{verbose} == TRUE \code{Optim$steptol} can be a vector, i.e
 \code{c(200, 50, 10)} means: Do 200 iterations then check for convergence, do 50
 iterations then check for convergence, check every 10 iterations for convergence until
 itermax is reached. Defaults to \code{Optim = list(reltol = 1e-6, itermax = 1e3,
-steptol = 50, CR = .9, trace = 0)}.}
+steptol = 50, CR = .9, trace = 0, parallelType = 0)}.}
 
 \item{DstarM}{If TRUE a D*M analysis is done, otherwise the Chi square distance
 between data and model is minimized.}
