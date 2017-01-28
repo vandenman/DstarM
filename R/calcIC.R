@@ -60,16 +60,16 @@
 #'resND2 = estND(resD2, Optim = list(parallelType = 1))
 #'resND3 = estND(resD3, Optim = list(parallelType = 1))
 #'# Estimate observed densities
-#'resObs1 = estObserved(resD1, resND1)
-#'resObs2 = estObserved(resD2, resND2)
-#'resObs3 = estObserved(resD3, resND3)
+#'resObs1 = estObserved(resD1, resND1, data = dat)
+#'resObs2 = estObserved(resD2, resND2, data = dat)
+#'resObs3 = estObserved(resD3, resND3, data = dat)
 #'# Compare optimizer fitness
 #'lstObs = list(resObs1, resObs2, resObs3)
-#'# fit$total is the sum of fit$Decision and
-#'# fit$ND. Model 3 has the lowest fit
-#'sapply(lstObs, function(x) x$fit$total)
-#'# model 3 has lowest Decision fit due to overfitting
+#'sapply(lstObs, function(x) x$fit)          # model 2 performs best!
+#'sapply(lstObs, function(x) x$fit$chisq$sum)# model 2 performs best!
+#'# model 3 has lower Decision fit due to overfitting the decision model
 #'sapply(lstObs, function(x) x$fit$Decision)
+#'
 #'# However, model 3 has worse nondecision fit compared to model 2 due to overfitting!
 #'sapply(lstObs, function(x) x$fit$ND)
 #'# Calculate information criteria
@@ -97,12 +97,13 @@
 #'DstarM = FALSE, Optim = list(parallelType = 1))
 #'# resObs does not need to be calculated now since resC* contains the full model
 #'# Estimate observed densities
-#'resObsC1 = estObserved(resC1)
-#'resObsC2 = estObserved(resC2)
-#'resObsC3 = estObserved(resC3)
+#'resObsC1 = estObserved(resC1, data = dat)
+#'resObsC2 = estObserved(resC2, data = dat)
+#'resObsC3 = estObserved(resC3, data = dat)
 #'# Compare optimizer fitness
 #'lstObsC = list(resObsC1, resObsC2, resObsC3)
-#'sapply(lstObsC, function(x) x$fit$total)
+#'sapply(lstObsC, function(x) x$fit)
+#'sapply(lstObsC, function(x) x$fit$chisq$sum)
 #'# Calculate information criteria
 #'ICC1 = calcIC(resObserved = resObsC1, data = dat)
 #'ICC2 = calcIC(resDecision = resC2, data = dat) # both input methods are possible
@@ -208,7 +209,7 @@ calcIC = function(resObserved, resDecision, resND, data, npar) {
   res = list(AIC = AIC, AICc = AICc, BIC = BIC,
              HQC = HQC, npar = npar, logLik = logLik)
   class(res) = 'DstarM'
-  warning('D*M models are not estimated by maximizing the likelihood! Be careful when interpreting the results. See ?calcIC for more information.')
+  warning('D*M models are not estimated by maximizing the likelihood! Results of these functions are experimental, be careful when interpreting the results. See ?calcIC for more information.')
   return(res)
 }
 
