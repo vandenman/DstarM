@@ -44,7 +44,12 @@ function evaluations (more than 10.000) it is recommended to omit error handling
 density functions. \code{estDstarM} will apply some internal error checks
 (see \code{\link{testFun}}) on the density functions before starting differential
 evolution. A version of \code{ddifusion} without error handling can be found in
-the source code (commented out to pass R check).
+the source code (commented out to pass R check). Note that for in \code{Voss.density}
+if DstarM == FALSE nondecision parameters are implemented manually and might differ
+from from how they are implemented in other packages. The parameter \code{t0}
+specifies the mean of a uniform distribution and \code{st0} specifies the relative
+size of this uniform distribution. To obtain the lower and upper range of the
+uniform distribution calculate a = t0 - t0*st0, and b = t0 + t0*st0.
 }
 \examples{
 t = seq(0, .75, .01)

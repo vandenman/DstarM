@@ -358,7 +358,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 
         # print progress
         tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
-        names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixedMat[1, ]
+        names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixed$fixedMat[1, ]
         replicate(prevSize,  cat('\010'))
         msg1 = utils::capture.output(
           cat(sprintf('Total iterations done: %s \012Improvement over last %s iterations: %10g \012Objective function value: %10g \012Current parameter estimates:\012',
