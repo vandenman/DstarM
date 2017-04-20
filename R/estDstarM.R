@@ -638,7 +638,7 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 	}
 	if (!DstarM) { # traditional estimation
 		out = rep.int(0L, (dim(g)[2L]))
-		for (i in 1L:length(out)) { # calc chi square dist
+		for (i in 1:length(out)) { # calc chi square dist
 			args.dist$a = g[, i]
 			args.dist$b = m[, i]
 			out[i] = do.call(fun.dist, args.dist) * 100 * ql[i] / sum(ql)
@@ -648,11 +648,11 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 			var.m = getVar(m, tt, mm2)
 			var.r = var.data - var.m
 			if (any(var.r < 0L & abs(var.r) < .Machine$double.neg.eps)) {
-				return(1e9 - 20 * sum(var.r[var.r < 0L]))
+				return(1e9 - 20 * sum(var.r[var.r < 0]))
 			}
 		}
-		out = rep.int(0L, (length(ii)))
-		for (l in 1L:length(ii)) {
+		out = rep(0, (length(ii)))
+		for (l in 1:length(ii)) {
 			# args.dist$a = customConvolveO(g[, ii[l]], rev(m[, jj[l]]))[seq_along(tt)]
 			# args.dist$b = customConvolveO(g[, jj[l]], rev(m[, ii[l]]))[seq_along(tt)]
 			args.dist$a = customConvolveO(g[, ii[l]], by * rev(m[, jj[l]]))[seq_along(tt)]
