@@ -49,4 +49,3 @@ pars = c(1, 2, .5, .5, .5)
 dat = simData(n, pars, tt, pdfND)
 head(dat)
 }
-

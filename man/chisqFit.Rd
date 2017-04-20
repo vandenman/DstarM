@@ -53,4 +53,3 @@ resO = estObserved(resD, resN, data = dat)
 resO$fit # proper fit
 }
 }
-

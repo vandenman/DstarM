@@ -121,4 +121,3 @@ coef(res)
 summary(res)
 }
 }
-

@@ -24,4 +24,3 @@ The mean will then be estimated by substracting the mean of the model densities 
 If the latter is supplied than this is not required; the mean will be calculated by
 integrating the nondecision distribution.
 }
-

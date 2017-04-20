@@ -37,4 +37,3 @@ abline(h = p, v = qEst, col = 1:6, lty = 2) # add lines for p and for obtained q
 points(x = qEst, y = p, pch = 18, col = 1:6, cex = 1.75) # add points for intersections
 
 }
-

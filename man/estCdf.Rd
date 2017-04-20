@@ -38,4 +38,3 @@ legend('topleft', legend = c('True Cdf', 'Stats Estatimation', 'DstarM Estimatio
        col = 1:3, lty = c(1, NA, NA), pch = c(NA, 1, 1), bty = 'n')
 
 }
-

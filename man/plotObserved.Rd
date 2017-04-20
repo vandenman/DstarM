@@ -82,4 +82,3 @@ plotObserved(resObserved = resObs, data = dat, what = 'c', xlim = c(0, 1))
 plotObserved(resObserved = resObs, data = dat, what = 'r', xlim = c(0, 1))
 }
 }
-

@@ -33,4 +33,3 @@ testFun(fun.density = Voss.density, lower = lower, upper = upper,
 args = args)
 # TRUE
 }
-
