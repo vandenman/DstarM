@@ -33,4 +33,3 @@ probs = seq(0, 1, .01)
 q = obsQuantiles(data, probs = probs)
 matplot(probs, q, type = 'l', las = 1, bty = 'n')
 }
-

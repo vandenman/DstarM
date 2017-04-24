@@ -30,4 +30,3 @@ the density function and any additional arguments for the density function will 
 extracted from that object. If \code{pars} is missing these will also be extracted from
 this object. This function is intended to recalculate model densities at a new timegrid.
 }
-

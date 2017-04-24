@@ -19,4 +19,3 @@ nondecision distribution by subtracting the variance of the model distribution f
 variance of the data distribution. If the latter is supplied, the variance is calculated by
 integrating the nondecision distribution.
 }
-

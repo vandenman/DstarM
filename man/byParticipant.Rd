@@ -66,4 +66,3 @@ resObsPp = byParticipant(resD = resDpp,
 plot(resObsPp)
 }
 }
-

@@ -130,4 +130,3 @@ which.min(c(ICC1$AIC, ICC2$AIC, ICC3$AIC))
 which.min(c(ICC1$BIC, ICC2$BIC, ICC3$BIC))
 }
 }
-

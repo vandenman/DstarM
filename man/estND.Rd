@@ -83,4 +83,3 @@ plot(resND)
 lines(tt, pdfND, type = 'b', col = 2)
 }
 }
-

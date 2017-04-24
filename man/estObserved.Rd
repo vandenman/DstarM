@@ -71,4 +71,3 @@ plot(resObs, col = rep(1:3, each = 2), xlim = 0:1)
 matlines(tt, lst$pdfNormalized, col = rep(1:3, each = 2), lty = 2)
 }
 }
-
