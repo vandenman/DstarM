@@ -647,7 +647,7 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 		if (forceRestriction) { # check for violations of restriction on variance
 			var.m = getVar(m, tt, mm2)
 			var.r = var.data - var.m
-			if (any(var.r < 0L & abs(var.r) < .Machine$double.neg.eps)) {
+			if (any(var.r < 0L | abs(var.r) < .Machine$double.neg.eps)) {
 				return(1e9 - 20 * sum(var.r[var.r < 0]))
 			}
 		}

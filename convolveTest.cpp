@@ -181,7 +181,14 @@ double totalobjectiveC(vec pars, vec tt, vec ql, vec ii, vec jj, vec varData,
 
 	double out = 0.0;
 
-	mat pdf = getPdfC(pars, tt, mm, DstarM, oscPdf);
+	// convert restr to matrix of parameters
+	for (int i = 0; i < restr.n_rows; i++) {
+		for (int j = 0; j < restr.n_cols; j++) {
+			restr(i, j) = pars[restr(i, j)];
+		}
+	}
+
+	mat pdf = getPdfC(restr, tt, mm, DstarM, oscPdf);
 	if (pdf.n_elem == 1) {
 		return 1e9;
 	}
@@ -200,7 +207,7 @@ double totalobjectiveC(vec pars, vec tt, vec ql, vec ii, vec jj, vec varData,
 
 			vec varModel = getVarC(pdf, tt, mm2);
 			vec varNonDec = varData - varModel;
-			if (any((varNonDec < 0) && (abs(varNonDec) < 1.110223e-16))) {
+			if (any((varNonDec < 0) | (abs(varNonDec) < 1.110223e-16))) {
 				return 1e9;
 			}
 
