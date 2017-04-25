@@ -86,13 +86,15 @@
 #'summary(res)
 #'}
 
+#' @useDynLib DstarM
+
 #' @export
 estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 					 Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
 					 splits = rep.int(0, (ncondition)), forceRestriction = TRUE,
 					 mg = NULL, h = 1, pars, fun.density = Voss.density,
 					 args.density = list(), fun.dist = chisq,
-					 args.dist = list(tt = tt), verbose = TRUE) {
+					 args.dist = list(tt = tt), verbose = TRUE, useRcpp = FALSE) {
 	# Error handling
 	Optim = OptimCheck(Optim)
 	by = unique(zapsmall(diff(tt)))
@@ -174,6 +176,13 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 			}
 		}
 	}
+	# rcpp checks
+	if (useRcpp && !(identical(fun.density, Voss.density) || identical(fun.dist, chisq))) {
+		stop("useRcpp currently only implemented for fun.density = Voss.density and fun.dist = chisq.")
+	} else if (useRcpp && !identical(fixed, list())) {
+		warning("useRcpp currently does not support parameter fixations.")
+		fixed = list()
+	}
 
 	# Indexing based on restrictions on nondecision distribution and number of conditions
 	group = groups(nconditie = ncondition, splits = splits, restriction = FALSE)
@@ -218,7 +227,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	mu.data = moments.data[1, ]
 	var.data = moments.data[3, ]
 	# apply SE -  gives the variance restriction some lenience
-	var.data = var.data * (1 + SE * sqrt(2 / (n - 1)))
+	var.data = var.data * (1 + SE * sqrt(2 / (n - 1))) # TODO: include ref
 
 	# ii and jj are vectors that contain all combinations of p and p' to compare in the objective function
 	ii = matrix(NA, ((dim(group)[1L]) * (dim(group)[1L] - 1L)) / 2, dim(group)[2L])
@@ -262,15 +271,22 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	args.density = args.density[names(args.density) %in% names(formals(fun.density))]
 
 	# collect arguments so far in a list
-	argsList = list(tt = tt, g = g, ql = ql,
-					# make every columnn of restr.mat temporarily a list
-					restr.mat = unlist(apply(restr.mat, 2, list), recursive = FALSE, use.names = FALSE),
-					DstarM = DstarM, oscPdf = oscPdf,
-					ii = ii, jj = jj, mm = mm, mm2 = mm2,
-					fun.density = fun.density, args.density = args.density,
-					fun.dist = fun.dist, args.dist = args.dist, var.data = var.data,
-					forceRestriction = forceRestriction, by = by)
-
+	if (useRcpp) {
+		argsList = list(tt = tt, restr = restr.mat - 1.0,
+						ii = ii - 1L, jj = jj - 1L, mm = mm, mm2 = mm2,
+						g = g, varData = var.data, ql = ql,
+					  	DstarM = DstarM, oscPdf = oscPdf, forceRestriction = forceRestriction, precision = 3.0)
+	} else {
+		argsList = list(tt = tt, g = g, ql = ql,
+						# make every columnn of restr.mat temporarily a list
+						restr.mat = unlist(apply(restr.mat, 2, list), recursive = FALSE, use.names = FALSE),
+						DstarM = DstarM, oscPdf = oscPdf,
+						ii = ii, jj = jj, mm = mm, mm2 = mm2,
+						fun.density = fun.density, args.density = args.density,
+						fun.dist = fun.dist, args.dist = args.dist, var.data = var.data,
+						forceRestriction = forceRestriction, by = by,
+						parnames = names(lower))
+	}
 	if (missing(pars)) { # change to is is.null(pars)?
 
 		if (length(fixed)) {
@@ -290,7 +306,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 			fixed = list(fixedMat = fixedMat, indFixed = indFixed,
 						 isNumeric = suppressWarnings(!is.na(as.numeric(fixedMat[3, ]))))
 		}
-		argsList$fixed = fixed
+		if (!useRcpp) argsList$fixed = fixed
 
 		# do differential evolution
 		nrep = ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) - 1)])) / Optim$steptol[length(Optim$steptol)])
@@ -308,11 +324,14 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 		oldval = Inf
 		nfeval = 0 # number of function evaluations
 		# add arguments for DEoptim to the list
-		argsList$all = FALSE
-		argsList$fn = total.objective
+		if (useRcpp) {
+			argsList$fn = totalobjectiveC
+		} else {
+			argsList$all = FALSE
+			argsList$fn = total.objective
+		}
 		argsList$lower = lower
 		argsList$upper = upper
-		argsList$parnames = names(lower)
 
 		argsList$control = DEoptim::DEoptim.control()
 		sharedNames = names(argsList$control)[(names(argsList$control) %in% names(Optim))]

@@ -8,7 +8,8 @@ estDstarM(data, tt, restr = NULL, fixed = list(), lower, upper,
   Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
   splits = rep.int(0, (ncondition)), forceRestriction = TRUE, mg = NULL,
   h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = TRUE)
+  fun.dist = chisq, args.dist = list(tt = tt), verbose = TRUE,
+  useRcpp = FALSE)
 }
 \arguments{
 \item{data}{A dataframe with: a column named \code{rt} containing response times in ms,
