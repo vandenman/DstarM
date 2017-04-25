@@ -7,6 +7,8 @@ Maintainer: Don van den Bergh <donvdbergh@hotmail.com>
 Description: A collection of functions to estimate parameters of a diffusion model via a D*M analysis. Build in models are: the Ratcliff diffusion model, the RWiener diffusion model, and Linear Ballistic Accumulator models. Custom models functions can be specified as long as they have a density function.
 License: GPL (>= 2)
 LazyData: TRUE
-Imports: DEoptim, RWiener, rtdists, stats, ggplot2
+Imports: DEoptim, RWiener, rtdists, stats, ggplot2, Rcpp
+LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
 ByteCompile: TRUE
 RoxygenNote: 6.0.1
