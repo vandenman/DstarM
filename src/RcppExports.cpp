@@ -6,6 +6,31 @@
 
 using namespace Rcpp;
 
+// simpsonC
+arma::vec simpsonC(const arma::vec x, const arma::mat fx);
+RcppExport SEXP DstarM_simpsonC(SEXP xSEXP, SEXP fxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type fx(fxSEXP);
+    rcpp_result_gen = Rcpp::wrap(simpsonC(x, fx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dunifc
+arma::vec dunifc(arma::vec x, double a, double b);
+RcppExport SEXP DstarM_dunifc(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(dunifc(x, a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 // convolveC
 arma::vec convolveC(arma::vec x, arma::vec y);
 RcppExport SEXP DstarM_convolveC(SEXP xSEXP, SEXP ySEXP) {
@@ -43,9 +68,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rObjC2
-double rObjC2(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre, arma::vec lenPost);
-RcppExport SEXP DstarM_rObjC2(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPreSEXP, SEXP lenPostSEXP) {
+// rObjC3
+double rObjC3(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre, arma::vec lenPost);
+RcppExport SEXP DstarM_rObjC3(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPreSEXP, SEXP lenPostSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -55,28 +80,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type bb(bbSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type lenPre(lenPreSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type lenPost(lenPostSEXP);
-    rcpp_result_gen = Rcpp::wrap(rObjC2(r, tt, a, bb, lenPre, lenPost));
+    rcpp_result_gen = Rcpp::wrap(rObjC3(r, tt, a, bb, lenPre, lenPost));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rObjC2
+double rObjC2(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre);
+RcppExport SEXP DstarM_rObjC2(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPreSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type r(rSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tt(ttSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type a(aSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type bb(bbSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lenPre(lenPreSEXP);
+    rcpp_result_gen = Rcpp::wrap(rObjC2(r, tt, a, bb, lenPre));
     return rcpp_result_gen;
 END_RCPP
 }
 // rObjC1
-double rObjC1(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre);
-RcppExport SEXP DstarM_rObjC1(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPreSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type r(rSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tt(ttSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type a(aSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type bb(bbSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type lenPre(lenPreSEXP);
-    rcpp_result_gen = Rcpp::wrap(rObjC1(r, tt, a, bb, lenPre));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rObjC0
-double rObjC0(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPost);
-RcppExport SEXP DstarM_rObjC0(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPostSEXP) {
+double rObjC1(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPost);
+RcppExport SEXP DstarM_rObjC1(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP, SEXP lenPostSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -85,7 +110,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type a(aSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type bb(bbSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type lenPost(lenPostSEXP);
-    rcpp_result_gen = Rcpp::wrap(rObjC0(r, tt, a, bb, lenPost));
+    rcpp_result_gen = Rcpp::wrap(rObjC1(r, tt, a, bb, lenPost));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rObjC0
+double rObjC0(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb);
+RcppExport SEXP DstarM_rObjC0(SEXP rSEXP, SEXP ttSEXP, SEXP aSEXP, SEXP bbSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type r(rSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tt(ttSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type a(aSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type bb(bbSEXP);
+    rcpp_result_gen = Rcpp::wrap(rObjC0(r, tt, a, bb));
     return rcpp_result_gen;
 END_RCPP
 }

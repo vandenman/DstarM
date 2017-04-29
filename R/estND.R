@@ -35,7 +35,8 @@
 #' value it is recommended to re-estimate the nondecision distributions with a higher max value. Increasing
 #' the \code{max} value without reason will increase the size of the parameter space and slow the estimation
 #' procedure.
-#'
+#' @param useRcpp Logical, setting this to true will make use of an Rcpp implementation of the objective function.
+#' This gains speed at the cost of flexibility.
 #'
 #' @examples
 #' # simulate data with three stimuli of different difficulty.
@@ -67,7 +68,7 @@
 #' @export
 # estimate nondecision distribution
 estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1, lower.bound = 0,
-				 Optim = list(), verbose = TRUE, dist = NULL, NDindex, max = 100) {
+				 Optim = list(), verbose = TRUE, dist = NULL, NDindex, max = 100, useRcpp = FALSE) {
 	# zp - zero padding: adding a number of zeros to avoid numerical artefacts
 	# these will be forced to 0 after the estimation procedure
 	stopifnot(is.DstarM(res))
@@ -77,7 +78,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 	}
 
 	ncondition = res$ncondition
-	if (!any(is.null(tt), is.null(data))) {
+	if (!any(is.null(tt), is.null(data))) { # necessary to recalculate time grids
 		by = unique(zapsmall(diff(tt)))
 		if (length(by) != 1) {
 			stop('Time grid tt must be equally spaced and length(unique(zapsmall(diff(tt)))) == 1 must be TRUE.',
@@ -111,7 +112,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		pars.list = unlist(apply(pars, 2, list), recursive = FALSE, use.names = FALSE) # reshape to lists
 		modelDist = getPdf(pars.list, tt, DstarM = TRUE, oscPdf = FALSE,
 						   mm, fun.density = res$fun.density) # get Voss pdf
-	} else {
+	} else { # not necessary to recalculate time grids
 		tt = res$tt
 		g = res$g.hat
 		modelDist = res$modelDist
@@ -179,7 +180,45 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 			Optim$steptol = Optim$steptol2
 			nrep = length(Optim$steptol)
 		}
-		argsList = list(fn = r.obj, tt = tt)#, by = by)
+
+		argsList = list(tt = tt)
+
+		ttr[[jidx]] = seq.int(lower.bound[jidx], upper.bound[jidx], by)
+		ttr2 = seq.int(lower.bound[jidx], upper.bound[jidx] + by*zp, by)
+
+		nPre = length(seq(min(tt), min(ttr2), by)) - 1L
+		nPost = length(seq(max(ttr2), max(tt), by)) - 1L
+
+		# select objective function
+		if (useRcpp) {
+			if (nPre == 0 && nPost == 0) {
+
+				argsList$fn = rObjC0
+
+			} else if (nPre == 0) {
+
+				argsList$fn = rObjC1
+				argsList$lenPost = rep(0, nPost)
+
+			} else if (nPost == 0) {
+
+				argsList$fn = rObjC2
+				argsList$lenPre = rep(0, nPre)
+
+			} else {
+
+				argsList$fn = rObjC3
+				argsList$lenPre = rep(0, nPre)
+				argsList$lenPost = rep(0, nPost)
+			}
+		} else  {
+
+			argsList$fn = r.obj
+			argsList$lenPre = rep(0, nPre)
+			argsList$lenPost = rep(0, nPost)
+
+		}
+
 		argsList$control = DEoptim::DEoptim.control(itermax = Optim$itermax)
 		sharedNames = names(argsList$control)[(names(argsList$control) %in% names(Optim))]
 		argsList$control[sharedNames] = Optim[sharedNames]
@@ -192,8 +231,6 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 												  'customApprox'), Optim$foreachArgs)
 		}
 
-		ttr[[jidx]] = seq.int(lower.bound[jidx], upper.bound[jidx], by)
-		ttr2 = seq.int(lower.bound[jidx], upper.bound[jidx] + by*zp, by)
 		argsList$lower = rep(0, length(ttr2))
 		argsList$upper = argsList$lower + max # + 1e30 is arbitrary and needs to be something better!
 		if (is.null(Optim$NP[jidx]) | anyNA(Optim$NP[jidx])) {
@@ -201,8 +238,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		} else {
 			argsList$control$NP = Optim$NP[jidx]
 		}
-		argsList$lenPre = rep(0, length(seq(min(tt), min(ttr2), by)) - 1L)
-		argsList$lenPost = rep(0, length(seq(max(ttr2), max(tt), by)) - 1L)
+
 		#argsList$control$initialpop = NULL # moet iets anders zijn!
 		ind = stats::na.omit(group[, j]) # index to avoid having to write na.omit 1e6 times
 		m = modelDist[, ind] # get model dists
@@ -211,8 +247,9 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		temp2 = rowSums(temp2) / ncondition # 1/I sum[K*Mp(O)]
 		# normalize temp1 and temp 2 -- redundant? NO
 		temp1 = temp1 / simpson(tt, temp1)
-		# reverse here instead of in the objective function, same for * by
-		temp2 = rev(temp2 / simpson(tt, temp2)) * by
+		temp2 = by * temp2 / simpson(tt, temp2)
+		if (!useRcpp) # reverse here instead of in objective function
+			temp2 = rev(temp2)
 		if (!is.null(dist)) {
 			objVals[j] = r.obj(r = dist[, jidx], tt = tt, a = temp1, bb = temp2,
 							   lenPre = numeric(0), lenPost = numeric(0))#, by = by)

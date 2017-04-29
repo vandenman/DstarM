@@ -46,6 +46,8 @@
 #' forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
 #' printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
 #' \code{Optim}.
+#' @param useRcpp Logical, setting this to true will make the objective function use an Rcpp implementation
+#' of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.
 #'
 #' @details Response options will be alphabetically sorted and the first response option will be
 #' treated as the 'lower' option. This means that if the observed proportion of the first

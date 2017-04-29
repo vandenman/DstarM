@@ -71,7 +71,7 @@ Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
     by = t[2L] - t[1L]
     ND = rev(stats::dunif(t, pars[3L] - .5*st0, pars[3L] + .5*st0 + (by / 100) ))
     if (any(ND != 0)) {
-      dist = zapsmall(customConvolveO(abs(dist), by*ND)[seq_along(t)], 13)
+      dist = zapsmall(customConvolveO(abs(dist), ND)[seq_along(t)], 13)
     }
   }
   return(dist)

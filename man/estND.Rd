@@ -6,7 +6,7 @@
 \usage{
 estND(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1,
   lower.bound = 0, Optim = list(), verbose = TRUE, dist = NULL, NDindex,
-  max = 100)
+  max = 100, useRcpp = FALSE)
 }
 \arguments{
 \item{res}{an object of class \code{D*M}.}
@@ -54,6 +54,9 @@ If estimated nondecision distributions appear chopped of or have a lot of values
 value it is recommended to re-estimate the nondecision distributions with a higher max value. Increasing
 the \code{max} value without reason will increase the size of the parameter space and slow the estimation
 procedure.}
+
+\item{useRcpp}{Logical, setting this to true will make use of an Rcpp implementation of the objective function.
+This gains speed at the cost of flexibility.}
 }
 \description{
 Estimate nondecision denstiy
