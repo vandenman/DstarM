@@ -338,7 +338,14 @@ resND = estND(res, useRcpp = TRUE, Optim = list(parallelType = 0))
 plot(estND)
 lines(tt, pdfND, col = 2, lty = 2)
 
-gg = fft(res$modelDist)
-hh = fft(res$g.hat)
+
+gg = fft(DstarM:::convolveC(rowMeans(res$modelDist), dunif(tt)))
+matplot(tt, gg)
+hh = fft(rowMeans(res$g.hat))
 ff = hh / gg
 rr = fft(ff, inverse = TRUE)
+matplot(tt, abs(Conj(rr)), type = 'l')
+
+qq =pracma::deconv(DstarM:::convolveC(rowMeans(res$modelDist), dunif(tt)), rowMeans(res$g.hat))
+plot(tt[-1], qq[[2]])
+
