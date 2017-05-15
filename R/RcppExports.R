@@ -57,11 +57,15 @@ getVoss <- function(rt, pars, precision) {
     .Call('DstarM_getVoss', PACKAGE = 'DstarM', rt, pars, precision)
 }
 
+imposeFixationsC <- function(pars, fixed) {
+    .Call('DstarM_imposeFixationsC', PACKAGE = 'DstarM', pars, fixed)
+}
+
 getPdfC <- function(tt, pars, mm, DstarM, oscPdf, precision) {
     .Call('DstarM_getPdfC', PACKAGE = 'DstarM', tt, pars, mm, DstarM, oscPdf, precision)
 }
 
-totalobjectiveC <- function(pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision) {
-    .Call('DstarM_totalobjectiveC', PACKAGE = 'DstarM', pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision)
+totalobjectiveC <- function(pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed) {
+    .Call('DstarM_totalobjectiveC', PACKAGE = 'DstarM', pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed)
 }
 

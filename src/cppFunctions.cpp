@@ -8,6 +8,7 @@ extern "C" {
 
 // for speed!
 
+using namespace arma;
 // #define ARMA_NO_DEBUG
 
 /* unused alternative for trapz */
@@ -26,20 +27,20 @@ arma::vec simpsonC(const arma::vec x, const arma::mat fx) {
 	const int p = fx.n_cols; // number of integrals
 
 	int n2 = 2*n - 1; // size of interpolated grid
-	arma::vec x2 = arma::linspace<arma::vec>(x[0], x[n-1], n2); // interpolated grid
+	arma::vec x2 = arma::linspace<arma::vec>(x(0), x(n-1), n2); // interpolated grid
 	arma::mat fx2(n2, p);
 	arma::vec tmp(n2);
 
-	for (int i = 0; i < p; i++) {
+	for (int i = 0; i < p; ++i) {
 		arma::interp1(x, fx.col(i), x2, tmp, "*linear");
 		fx2.col(i) = tmp;
 	}
 
-	double h = (x2[2] - x2[1]) / 3.0;
+	double h = (x2(2) - x2(1)) / 3.0;
 
 	arma::vec out(p, arma::fill::zeros);
 
-	for (int i = 0; i < (n - 1); i++) {
+	for (int i = 0; i < (n - 1); ++i) {
 
 		out += trans(fx2.row(2*i) + 4.0 * fx2.row(2*i + 1) + fx2.row(2*i + 2));
 
@@ -50,7 +51,7 @@ arma::vec simpsonC(const arma::vec x, const arma::mat fx) {
 }
 
 // [[Rcpp::export]]
-arma::vec dunifc(arma::vec x, double a, double b) {
+arma::vec dunifc(const arma::vec x, const double a, const double b) {
 
 	// OUTPUT:
 	// uniform density function
@@ -61,12 +62,12 @@ arma::vec dunifc(arma::vec x, double a, double b) {
 
 	arma::vec out(x.n_elem);
 	double d = 1.0 / (b-a);
-	for (unsigned int i = 0; i < x.n_elem; i++) {
+	for (arma::uword i = 0; i < x.n_elem; ++i) {
 
-		if (x[i] >= a && x[i] <= b) {
-			out[i] = d;
+		if (x(i) >= a && x(i) <= b) {
+			out(i) = d;
 		} else {
-			out[i] = 0.0;
+			out(i) = 0.0;
 		}
 
 	}
@@ -95,7 +96,7 @@ arma::mat convolveC2(arma::mat x, arma::mat y) {
 
 	arma::mat out(2*nr - 1, nc);
 
-	for (int i = 0; i < nc; i++) {
+	for (int i = 0; i < nc; ++i) {
 
 		out.col(i) = arma::conv(x.col(i), y.col(i));
 
@@ -183,9 +184,9 @@ arma::vec getVarC(arma::mat Pdf, arma::vec tt, arma::mat mm2) {
 	const int nc = Pdf.n_cols;
 	arma::vec out(nc);
 
-	for (int i = 0; i < nc; i++) {
+	for (int i = 0; i < nc; ++i) {
 
-		out[i] = nthCMomentSC(tt, Pdf.col(i), 2);
+		out(i) = nthCMomentSC(tt, Pdf.col(i), 2);
 
 	}
 
@@ -209,7 +210,7 @@ bool oscCheckC(arma::mat x) {
 		i = 1;
 
 		// loop and check if still ascending the density
-		while ((i < nr) && (x(i-1, c) <= x(i, c))) i++;
+		while ((i < nr) && (x(i-1, c) <= x(i, c))) ++i;
 
 		// first mode found at i
 		j = i;
@@ -237,9 +238,9 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 
 	arma::vec a(pars.n_cols);
 	arma::vec b(pars.n_cols);
-	double by = rt[1] - rt[0];
+	double by = rt(1) - rt(0);
 
-	for (unsigned int i = 0; i < pars.n_cols; i++) {
+	for (unsigned int i = 0; i < pars.n_cols; ++i) {
 		// sz
 		if (pars(7, i) < 0.5) {
 			pars(4, i) *= 2.0 * pars(7, i);
@@ -247,8 +248,8 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 			pars(4, i) *= 2.0 * (1.0 - pars(7, i));
 		}
 
-		a[i] = pars(2, i) - pars(6, i) * pars(2, i);
-		b[i] = pars(2, i) + pars(6, i) * pars(2, i);
+		a(i) = pars(2, i) - pars(6, i) * pars(2, i);
+		b(i) = pars(2, i) + pars(6, i) * pars(2, i);
 
 		pars(6, i) = 0;
 		pars(2, i) = 0;
@@ -274,7 +275,7 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 	double *in_params;
 
 	int j = 0;
-	for (unsigned int i = 0; i < pars.n_cols; i++) {
+	for (unsigned int i = 0; i < pars.n_cols; ++i) {
 
 		// pointer to parameters.
 		in_params = pars.colptr(i);
@@ -282,7 +283,7 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 		// call VOSS code.
 		dfastdm(in_numvalues, in_params, in_RTs, in_precision, out_densities_u, out_densities_l);
 
-		if (b[i] == 0.0 || by > (b[i] - a[i])) { // conditions for absent nondecision pdf
+		if (b(i) == 0.0 || by > (b(i) - a(i))) { // conditions for absent nondecision pdf
 
 			//Rcpp::Rcout << "no Conv\n" << std::endl;
 			dens.col(j) = abs(dens_low);
@@ -292,7 +293,7 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 
 			//Rcpp::Rcout << "manual Conv\n" << std::endl;
 
-			arma::vec nondecisionPdf = dunifc(rt, a[i], b[i]);
+			arma::vec nondecisionPdf = dunifc(rt, a(i), b(i));
 			dens.col(j) = convolveC(abs(dens_low), nondecisionPdf);
 			dens.col(j+1) = convolveC(dens_upp, nondecisionPdf);
 
@@ -305,6 +306,47 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 
 	return dens;
 }
+
+// [[Rcpp::export]]
+arma::vec imposeFixationsC(arma::vec pars, const arma::mat fixed) {
+
+	for (unsigned int i = 0; i < fixed.n_cols; ++i) {
+
+		pars.insert_rows(fixed(1, i), 1);
+
+		if (fixed(0, i) == 1) { // TRUE: fixed value, otherwise function
+
+			pars(fixed(1, i)) = fixed(2, i);
+
+		} else if (fixed(4, i) == 0) { // addition
+
+			pars(fixed(1, i)) = fixed(2, i) + pars(fixed(3, i));
+
+		} else if (fixed(4, i) == 1) { // substraction
+
+			pars(fixed(1, i)) = fixed(2, i) - pars(fixed(3, i));
+
+		} else if (fixed(4, i) == 2) { // multiplication
+
+			pars(fixed(1, i)) = fixed(2, i) * pars(fixed(3, i));
+
+		} else { // division
+
+			pars(fixed(1, i)) = fixed(2, i) / pars(fixed(3, i));
+
+		}
+
+		Rcpp::Rcout << "pars = " << pars << std::endl;
+
+	}
+
+	return pars;
+
+}
+
+
+
+
 
 // [[Rcpp::export]]
 arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool oscPdf, double precision) {
@@ -353,8 +395,8 @@ arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool 
 
 	arma::vec cor2(2*cor.n_elem);
 	for (unsigned int i = 0; i < cor.n_elem; i ++) {
-		cor2[2*i] = cor[i];
-		cor2[2*i + 1] = cor[i];
+		cor2(2*i) = cor(i);
+		cor2(2*i + 1) = cor(i);
 	}
 
 	// Rcpp::Rcout << "cor2: " << cor2 << std::endl;
@@ -367,14 +409,19 @@ arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool 
 // [[Rcpp::export]]
 double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii, arma::vec jj, arma::vec varData,
                        arma::mat g, arma::mat restr, arma::mat mm, arma::mat mm2,
-                       bool DstarM, bool oscPdf, bool forceRestriction, double precision) {
+                       bool DstarM, bool oscPdf, bool forceRestriction, double precision,
+                       bool anyFixed, arma::mat fixed) {
 
 	double out = 0.0;
 
+	if (anyFixed) {
+		pars = imposeFixationsC(pars, fixed);
+	}
+
 	// convert restr to matrix of parameters
-	for (unsigned int i = 0; i < restr.n_rows; i++) {
+	for (unsigned int i = 0; i < restr.n_rows; ++i) {
 		for (unsigned int j = 0; j < restr.n_cols; j++) {
-			restr(i, j) = pars[restr(i, j)];
+			restr(i, j) = pars(restr(i, j));
 		}
 	}
 
@@ -395,9 +442,9 @@ double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii,
 
 	if (!DstarM) {
 
-		for (unsigned int i = 0; i < pdf.n_cols; i++) {
+		for (unsigned int i = 0; i < pdf.n_cols; ++i) {
 
-			out += chisqC(tt, pdf.col(i), g.col(i)) * 100 * ql[i] / sum(ql);
+			out += chisqC(tt, pdf.col(i), g.col(i)) * 100 * ql(i) / sum(ql);
 
 		}
 
@@ -419,11 +466,11 @@ double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii,
 		arma::vec b;
 		for (unsigned int l = 0; l < ii.n_elem; l++) {
 
-			a = convolveC(g.col(ii[l]), pdf.col(jj[l]));
-			b = convolveC(g.col(jj[l]), pdf.col(ii[l]));
+			a = convolveC(g.col(ii(l)), pdf.col(jj(l)));
+			b = convolveC(g.col(jj(l)), pdf.col(ii(l)));
 			// Rcpp::Rcout << "out " << l << std::endl;
-			// Rcpp::Rcout << "  out " << chisqC(tt, a, b) * 100 * (ql[ii[l]] + ql[jj[l]]) / sum(ql) << std::endl;
-			out += chisqC(tt, a, b) * 100 * (ql[ii[l]] + ql[jj[l]]) / sum(ql);
+			// Rcpp::Rcout << "  out " << chisqC(tt, a, b) * 100 * (ql(ii(l)) + ql(jj(l))) / sum(ql) << std::endl;
+			out += chisqC(tt, a, b) * 100 * (ql(ii(l)) + ql(jj(l))) / sum(ql);
 
 		}
 		// Rcpp::Rcout << "a " << a.subvec(0, 9) << std::endl;

@@ -62,7 +62,31 @@
 #' If one intends to use a custom density function it is recommended to test the function first with \code{\link{testFun}}.
 #' When specifying a custom density function it is probably also necessary to change the lower and upper bounds of the parameter space.
 #'
-#' @return Returns an object of class \code{'D*M'}, which is a named list.
+#' For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
+#' See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
+#' This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
+#'
+#' @return Returns an object of class \code{'D*M'}.
+#' \item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
+#' \item{fixed}{Numeric vector. Contains the best parameter estimates.}
+#' \item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}
+#' \item{Debug}{List. contains the number of DEoptim iterations, the number of function evaluation of the objective function, and the maximum number of iterations.}
+#' \item{note}{String. A possible note that is used for summary purposes}
+#' \item{tt}{Numeric vector. Contains the time grid used.}
+#' \item{g.hat}{Numeric matrix. Named columns represent the (possibly smoothed) densities of the data distribution of each condition-response pair.}
+#' \item{modelDist}{Numeric matrix. Named columns represent the densities of the model evaluated at grid \code{tt} with parameters \code{Bestvals}.}
+#' \item{ncondition}{Numeric scalar. The number of conditions}
+#' \item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
+#' \item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
+#' \item{restr.mat}{Numeric matrix. Contains the restrictions used.}
+#' \item{splits}{Numeric vector. Equal to the input argument with the same name.}
+#' \item{n}{Numeric scalar. The total number of observations.}
+#' \item{DstarM}{Logical. Equal to the input argument with the same name.}
+#' \item{fun.density}{Function. Equal to the input argument with the same name.}
+#' \item{fun.dist}{Function. Equal to the input argument with the same name.}
+#' \item{h}{Scalar. Equal to the input argument with the same name.}
+#' \item{args.density}{Named list. Equal to the input argument with the same name.}
+#' \item{args.dist}{Named list. Equal to the input argument with the same name.}
 #'
 #' @examples
 #'
@@ -181,9 +205,6 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	# rcpp checks
 	if (useRcpp && !(identical(fun.density, Voss.density) || identical(fun.dist, chisq))) {
 		stop("useRcpp currently only implemented for fun.density = Voss.density and fun.dist = chisq.")
-	} else if (useRcpp && !identical(fixed, list())) {
-		warning("useRcpp currently does not support parameter fixations.")
-		fixed = list()
 	}
 
 	# Indexing based on restrictions on nondecision distribution and number of conditions
@@ -308,7 +329,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 			fixed = list(fixedMat = fixedMat, indFixed = indFixed,
 						 isNumeric = suppressWarnings(!is.na(as.numeric(fixedMat[3, ]))))
 		}
-		if (!useRcpp) argsList$fixed = fixed
+		argsList$fixed = fixed
 
 		# do differential evolution
 		nrep = ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) - 1)])) / Optim$steptol[length(Optim$steptol)])
@@ -327,10 +348,22 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 		nfeval = 0 # number of function evaluations
 		# add arguments for DEoptim to the list
 		if (useRcpp) {
+
 			argsList$fn = totalobjectiveC
+
+			# if (length(fixed) == 0) {
+				argsList$anyFixed = FALSE
+				argsList$fixed = matrix(1, 1, 1)
+			# } else {
+			# 	argsList$anyFixed = TRUE
+			# 	browser()
+			# 	argsList$fixed = fixed2Rcpp(argsList$fixed, lower)
+			# }
+
 		} else {
 			argsList$all = FALSE
 			argsList$fn = total.objective
+
 		}
 		argsList$lower = lower
 		argsList$upper = upper
@@ -692,7 +725,7 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 imposeFixations = function(fixed, pars, parnames) {
 
 	if (length(fixed)) {
-		for (i in 1L:length(fixed$indFixed)) { # loop over everything to be looked up
+		for (i in 1:length(fixed$indFixed)) { # loop over everything to be looked up
 
 			if (fixed$isNumeric[i]) { # numeric replacement
 
@@ -719,5 +752,43 @@ imposeFixations = function(fixed, pars, parnames) {
 }
 
 is.DstarM = function(x) identical(class(x), 'DstarM')
+
+fixed2Rcpp = function(fixed, lower) {
+
+	fixednew = matrix(0, nrow = 5, ncol = ncol(fixed$fixedMat))
+	fixednew[1, ] = 1 * fixed$isNumeric
+	fixednew[2, ] = fixed$indFixed - 2
+	for (i in 1:ncol(fixednew)) {
+
+		if (fixed$isNumeric[i]) {
+			fixednew[3, i] = as.numeric(fixed$fixedMat[2, i])
+		} else {
+
+			vals = strsplit(x = fixed$fixedMat[2, i], split = " ")[[1]]
+			if (any(length(vals) != 3,
+					identical(vals, fixed$fixedMat[3, i]),
+					!(vals[1] %in% names(lower)),
+					!vals[2] %in% c("+", "-", "/", "*"),
+					(vals[3] %in% names(lower)))) {
+				msg = paste(c("Incorrect input for argument fixed. Note that:",
+							"1) The first symbol(s) in fixed must denote a parameter to look up in names(lower).",
+							"3) The second symbol must be a reference to '+', '-', '/', '*'.",
+							"3) The third symbol must be a constant numeric.",
+							"4) Symbols must be separated by spaces (BAD: 'a2/2' GOOD: 'a2 / 2').",
+							" ",
+							sprintf("Problem detected at input: '%s'", fixed$fixedMat[3, i])),
+							collapse = "\n")
+				stop(cat(msg))
+			}
+			fixednew[3, i] = ifelse(is.na(vals[3]), 1, as.numeric(vals[3]))      # constant
+			fixednew[4, i] = which(names(lower) == vals[1])                      # location (zero index)
+			fixednew[5, i] = switch(vals[2], "+" = 0, "-" = 1, "*" = 2, "/" = 3) # operator
+		}
+
+	}
+	print(fixednew)
+	return(fixednew)
+
+}
 
 

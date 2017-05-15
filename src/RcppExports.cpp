@@ -19,14 +19,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // dunifc
-arma::vec dunifc(arma::vec x, double a, double b);
+arma::vec dunifc(const arma::vec x, const double a, const double b);
 RcppExport SEXP DstarM_dunifc(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const double >::type b(bSEXP);
     rcpp_result_gen = Rcpp::wrap(dunifc(x, a, b));
     return rcpp_result_gen;
 END_RCPP
@@ -191,6 +191,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// imposeFixationsC
+arma::vec imposeFixationsC(arma::vec pars, const arma::mat fixed);
+RcppExport SEXP DstarM_imposeFixationsC(SEXP parsSEXP, SEXP fixedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type fixed(fixedSEXP);
+    rcpp_result_gen = Rcpp::wrap(imposeFixationsC(pars, fixed));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getPdfC
 arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool oscPdf, double precision);
 RcppExport SEXP DstarM_getPdfC(SEXP ttSEXP, SEXP parsSEXP, SEXP mmSEXP, SEXP DstarMSEXP, SEXP oscPdfSEXP, SEXP precisionSEXP) {
@@ -208,8 +220,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // totalobjectiveC
-double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii, arma::vec jj, arma::vec varData, arma::mat g, arma::mat restr, arma::mat mm, arma::mat mm2, bool DstarM, bool oscPdf, bool forceRestriction, double precision);
-RcppExport SEXP DstarM_totalobjectiveC(SEXP parsSEXP, SEXP ttSEXP, SEXP qlSEXP, SEXP iiSEXP, SEXP jjSEXP, SEXP varDataSEXP, SEXP gSEXP, SEXP restrSEXP, SEXP mmSEXP, SEXP mm2SEXP, SEXP DstarMSEXP, SEXP oscPdfSEXP, SEXP forceRestrictionSEXP, SEXP precisionSEXP) {
+double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii, arma::vec jj, arma::vec varData, arma::mat g, arma::mat restr, arma::mat mm, arma::mat mm2, bool DstarM, bool oscPdf, bool forceRestriction, double precision, bool anyFixed, arma::mat fixed);
+RcppExport SEXP DstarM_totalobjectiveC(SEXP parsSEXP, SEXP ttSEXP, SEXP qlSEXP, SEXP iiSEXP, SEXP jjSEXP, SEXP varDataSEXP, SEXP gSEXP, SEXP restrSEXP, SEXP mmSEXP, SEXP mm2SEXP, SEXP DstarMSEXP, SEXP oscPdfSEXP, SEXP forceRestrictionSEXP, SEXP precisionSEXP, SEXP anyFixedSEXP, SEXP fixedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -227,7 +239,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type oscPdf(oscPdfSEXP);
     Rcpp::traits::input_parameter< bool >::type forceRestriction(forceRestrictionSEXP);
     Rcpp::traits::input_parameter< double >::type precision(precisionSEXP);
-    rcpp_result_gen = Rcpp::wrap(totalobjectiveC(pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision));
+    Rcpp::traits::input_parameter< bool >::type anyFixed(anyFixedSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type fixed(fixedSEXP);
+    rcpp_result_gen = Rcpp::wrap(totalobjectiveC(pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -82,7 +82,27 @@ printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace}
 of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.}
 }
 \value{
-Returns an object of class \code{'D*M'}, which is a named list.
+Returns an object of class \code{'D*M'}.
+\item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
+\item{fixed}{Numeric vector. Contains the best parameter estimates.}
+\item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}
+\item{Debug}{List. contains the number of DEoptim iterations, the number of function evaluation of the objective function, and the maximum number of iterations.}
+\item{note}{String. A possible note that is used for summary purposes}
+\item{tt}{Numeric vector. Contains the time grid used.}
+\item{g.hat}{Numeric matrix. Named columns represent the (possibly smoothed) densities of the data distribution of each condition-response pair.}
+\item{modelDist}{Numeric matrix. Named columns represent the densities of the model evaluated at grid \code{tt} with parameters \code{Bestvals}.}
+\item{ncondition}{Numeric scalar. The number of conditions}
+\item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
+\item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
+\item{restr.mat}{Numeric matrix. Contains the restrictions used.}
+\item{splits}{Numeric vector. Equal to the input argument with the same name.}
+\item{n}{Numeric scalar. The total number of observations.}
+\item{DstarM}{Logical. Equal to the input argument with the same name.}
+\item{fun.density}{Function. Equal to the input argument with the same name.}
+\item{fun.dist}{Function. Equal to the input argument with the same name.}
+\item{h}{Scalar. Equal to the input argument with the same name.}
+\item{args.density}{Named list. Equal to the input argument with the same name.}
+\item{args.dist}{Named list. Equal to the input argument with the same name.}
 }
 \description{
 Do a D*M analysis
@@ -100,6 +120,10 @@ response options is higher, the drift speed will most likely be negative.
 Any additional arguments can be passed to \code{fun.density} via the argument \code{args.density}.
 If one intends to use a custom density function it is recommended to test the function first with \code{\link{testFun}}.
 When specifying a custom density function it is probably also necessary to change the lower and upper bounds of the parameter space.
+
+For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
+See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
+This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
 }
 \examples{
 

@@ -4,3 +4,11 @@
 .Ruserdata
 *.Rhistory
 *.RData
+*.RData
+*.Rhistory
+*.pper
+.Rproj.user/59268622/build_options
+*.pper
+*.dll
+src/cppFunctions.o
+*.o
