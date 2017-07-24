@@ -13,7 +13,7 @@ using namespace arma;
 
 /* unused alternative for trapz */
 // [[Rcpp::export]]
-arma::vec simpsonC(const arma::vec x, const arma::mat fx) {
+arma::vec simpsonC(const arma::vec& x, const arma::mat& fx) {
 
 	// 1D integration.
 	// input:
@@ -51,7 +51,7 @@ arma::vec simpsonC(const arma::vec x, const arma::mat fx) {
 }
 
 // [[Rcpp::export]]
-arma::vec dunifc(const arma::vec x, const double a, const double b) {
+arma::vec dunifc(const arma::vec& x, const double& a, const double& b) {
 
 	// OUTPUT:
 	// uniform density function
@@ -77,7 +77,7 @@ arma::vec dunifc(const arma::vec x, const double a, const double b) {
 }
 
 // [[Rcpp::export]]
-arma::vec convolveC(arma::vec x, arma::vec y) {
+arma::vec convolveC(const arma::vec& x, const arma::vec& y) {
 
 	// x, y: equal length.
 	// output has length x.
@@ -89,7 +89,7 @@ arma::vec convolveC(arma::vec x, arma::vec y) {
 }
 
 // [[Rcpp::export]]
-arma::mat convolveC2(arma::mat x, arma::mat y) {
+arma::mat convolveC2(arma::mat& x, arma::mat& y) {
 
 	const int nr = x.n_rows;
 	const int nc = x.n_cols;
@@ -107,7 +107,7 @@ arma::mat convolveC2(arma::mat x, arma::mat y) {
 }
 
 // [[Rcpp::export]]
-double chisqC(arma::vec tt, arma::vec a, arma::vec b) {
+double chisqC(const arma::vec& tt, const arma::vec& a, const arma::vec& b) {
 
 	arma::vec vals = pow(a - b, 2) / (a + b + 1e-10);
 	return arma::as_scalar(arma::trapz(tt, vals));
@@ -115,7 +115,7 @@ double chisqC(arma::vec tt, arma::vec a, arma::vec b) {
 }
 
 // [[Rcpp::export]]
-double rObjC3(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre, arma::vec lenPost) {
+double rObjC3(arma::vec& r, arma::vec& tt, arma::vec& a, arma::vec& bb, arma::vec& lenPre, arma::vec& lenPost) {
 
 	// both lenPre and lenPost
 	arma::vec bb0 = join_cols(lenPre, r);
@@ -127,7 +127,7 @@ double rObjC3(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec le
 }
 
 // [[Rcpp::export]]
-double rObjC2(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPre) {
+double rObjC2(arma::vec& r, arma::vec& tt, arma::vec& a, arma::vec& bb, arma::vec& lenPre) {
 
 	// no lenPost
 	arma::vec bb1 = join_cols(lenPre, r);
@@ -138,7 +138,7 @@ double rObjC2(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec le
 }
 
 // [[Rcpp::export]]
-double rObjC1(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec lenPost) {
+double rObjC1(arma::vec& r, arma::vec& tt, arma::vec& a, arma::vec& bb, arma::vec& lenPost) {
 
 	// no lenPre
 	arma::vec bb1 = join_cols(r, lenPost);
@@ -149,7 +149,7 @@ double rObjC1(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb, arma::vec le
 }
 
 // [[Rcpp::export]]
-double rObjC0(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb) {
+double rObjC0(arma::vec& r, arma::vec& tt, arma::vec& a, arma::vec& bb) {
 
 	// no lenPre or lenPost
 	arma::vec bb2 = arma::conv(r, bb);
@@ -160,7 +160,7 @@ double rObjC0(arma::vec r, arma::vec tt, arma::vec a, arma::vec bb) {
 
 
 // [[Rcpp::export]]
-double nthMomentSC(arma::vec x, arma::vec fx, int nth) {
+double nthMomentSC(const arma::vec& x, const arma::vec& fx, const int& nth) {
 
 	return arma::as_scalar(arma::trapz(x, pow(x, nth) % fx));
 }
@@ -175,7 +175,7 @@ double nthCMomentSC(arma::vec x, arma::vec fx, int nth) {
 }
 
 // [[Rcpp::export]]
-arma::vec getVarC(arma::mat Pdf, arma::vec tt, arma::mat mm2) {
+arma::vec getVarC(arma::mat Pdf, const arma::vec& tt, const arma::mat& mm2) {
 
 	// sum degenerate pdfs
 	Pdf = Pdf * mm2;
@@ -195,7 +195,7 @@ arma::vec getVarC(arma::mat Pdf, arma::vec tt, arma::mat mm2) {
 }
 
 // [[Rcpp::export]]
-bool oscCheckC(arma::mat x) {
+bool oscCheckC(const arma::mat& x) {
 
 	// x: matrix where every column is a pdf.
 	// checks if any pdf is multimodal, stops at first encounter (false for no error, true for error).
@@ -231,7 +231,7 @@ bool oscCheckC(arma::mat x) {
 
 // only function that requires external C code
 // [[Rcpp::export]]
-arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
+arma::mat getVoss(arma::vec& rt, arma::mat& pars, const double& precision) {
 
 	// rescale parameters
 	// pars.row(7) /= pars.row(0); // z
@@ -268,8 +268,10 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 
 	// make pointers
 	int *in_numvalues = &sum;
+
 	double *in_RTs = rt.memptr();
-	double *in_precision = &precision;
+	double inPrec = precision;
+	double *in_precision = &inPrec;
 	double *out_densities_u = dens_upp.memptr();
 	double *out_densities_l = dens_low.memptr();
 	double *in_params;
@@ -308,7 +310,7 @@ arma::mat getVoss(arma::vec rt, arma::mat pars, double precision) {
 }
 
 // [[Rcpp::export]]
-arma::vec imposeFixationsC(arma::vec pars, const arma::mat fixed) {
+void imposeFixationsC(arma::vec pars, const arma::mat fixed) {
 
 	for (unsigned int i = 0; i < fixed.n_cols; ++i) {
 
@@ -340,7 +342,7 @@ arma::vec imposeFixationsC(arma::vec pars, const arma::mat fixed) {
 
 	}
 
-	return pars;
+	// return pars;
 
 }
 
@@ -349,7 +351,7 @@ arma::vec imposeFixationsC(arma::vec pars, const arma::mat fixed) {
 
 
 // [[Rcpp::export]]
-arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool oscPdf, double precision) {
+arma::mat getPdfC(arma::vec& tt, arma::mat pars, const arma::mat& mm, const bool& DstarM, const bool& oscPdf, const double& precision) {
 
 	// Pdfs, time grid, condition matrix, yes/ no DstarM analysis, check for oscillations.
 	// note that the 'A' matrix is used to report errors (instead of previous NULL).
@@ -407,15 +409,15 @@ arma::mat getPdfC(arma::vec tt, arma::mat pars, arma::mat mm, bool DstarM, bool 
 }
 
 // [[Rcpp::export]]
-double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii, arma::vec jj, arma::vec varData,
-                       arma::mat g, arma::mat restr, arma::mat mm, arma::mat mm2,
-                       bool DstarM, bool oscPdf, bool forceRestriction, double precision,
-                       bool anyFixed, arma::mat fixed) {
+double totalobjectiveC(arma::vec pars, arma::vec& tt, const arma::vec& ql, const arma::vec& ii, const arma::vec& jj, const arma::vec& varData,
+                       const arma::mat& g, arma::mat restr, const arma::mat& mm, const arma::mat& mm2,
+                       const bool& DstarM, const bool& oscPdf, const bool& forceRestriction, double precision,
+                       const bool& anyFixed, arma::mat fixed) {
 
 	double out = 0.0;
 
 	if (anyFixed) {
-		pars = imposeFixationsC(pars, fixed);
+		imposeFixationsC(pars, fixed);
 	}
 
 	// convert restr to matrix of parameters
@@ -454,7 +456,7 @@ double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii,
 
 			arma::vec varModel = getVarC(pdf, tt, mm2);
 			arma::vec varNonDec = varData - varModel;
-			if (arma::any((varNonDec < 0) * (arma::abs(varNonDec) < 1.110223e-16))) {
+			if (arma::any((varNonDec < 0) * (arma::abs(varNonDec) < pow(2, -52)))) {
 
 				// Rcpp::Rcout << "var restriction " << 1 << std::endl;
 				return 1e9;
@@ -465,16 +467,12 @@ double totalobjectiveC(arma::vec pars, arma::vec tt, arma::vec ql, arma::vec ii,
 		arma::vec a;
 		arma::vec b;
 		for (unsigned int l = 0; l < ii.n_elem; l++) {
-
 			a = convolveC(g.col(ii(l)), pdf.col(jj(l)));
 			b = convolveC(g.col(jj(l)), pdf.col(ii(l)));
-			// Rcpp::Rcout << "out " << l << std::endl;
-			// Rcpp::Rcout << "  out " << chisqC(tt, a, b) * 100 * (ql(ii(l)) + ql(jj(l))) / sum(ql) << std::endl;
+
 			out += chisqC(tt, a, b) * 100 * (ql(ii(l)) + ql(jj(l))) / sum(ql);
 
 		}
-		// Rcpp::Rcout << "a " << a.subvec(0, 9) << std::endl;
-		// Rcpp::Rcout << "b " << b.subvec(0, 9) << std::endl;
 
 	}
 

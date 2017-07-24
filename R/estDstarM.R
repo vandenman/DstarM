@@ -401,6 +401,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 				#        file = paste0('C:/Users/donvd/_Laptop/ResMas/Internship/DstarM/massSimulation/Simulation/Emailed/Envir', sum(Optim$steptol[1:(i-1)]), '.Rdata'))
 				#   browser()
 				# }
+				# browser()
 				out = do.call(DEoptim::DEoptim, argsList)
 				argsList$control$initialpop = out$member$pop # update population value
 				argsList$control$itermax = Optim$steptol[i+1] + 1 # update population value

@@ -13,3 +13,8 @@
 src/cppFunctions.o
 *.o
 *.pper
+.RData
+*.Rhistory
+.Rproj.user/59268622/build_options
+.Rproj.user/shared/notebooks/paths
+*.pper
