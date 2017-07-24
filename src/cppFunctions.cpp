@@ -310,7 +310,7 @@ arma::mat getVoss(arma::vec& rt, arma::mat& pars, const double& precision) {
 }
 
 // [[Rcpp::export]]
-void imposeFixationsC(arma::vec pars, const arma::mat fixed) {
+void imposeFixationsC(arma::vec& pars, const arma::mat fixed) {
 
 	for (unsigned int i = 0; i < fixed.n_cols; ++i) {
 
@@ -338,7 +338,7 @@ void imposeFixationsC(arma::vec pars, const arma::mat fixed) {
 
 		}
 
-		Rcpp::Rcout << "pars = " << pars << std::endl;
+		// Rcpp::Rcout << "pars = " << pars << std::endl;
 
 	}
 

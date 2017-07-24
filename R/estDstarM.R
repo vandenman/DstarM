@@ -351,14 +351,17 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 
 			argsList$fn = totalobjectiveC
 
-			# if (length(fixed) == 0) {
+			# imposeFixations(argsList$fixed, lower, names(lower))
+			# imposeFixationsC(pars = lower, fixed = qq)
+			# browser()
+			if (length(fixed) == 0) {
 				argsList$anyFixed = FALSE
-				argsList$fixed = matrix(1, 1, 1)
-			# } else {
-			# 	argsList$anyFixed = TRUE
+				argsList$fixed = matrix(1, 1, 1) # c++ does not accept NULL
+			} else {
+			 	argsList$anyFixed = TRUE
 			# 	browser()
-			# 	argsList$fixed = fixed2Rcpp(argsList$fixed, lower)
-			# }
+			 	argsList$fixed = fixed2Rcpp(argsList$fixed, lower)
+			}
 
 		} else {
 			argsList$all = FALSE
@@ -758,7 +761,7 @@ fixed2Rcpp = function(fixed, lower) {
 
 	fixednew = matrix(0, nrow = 5, ncol = ncol(fixed$fixedMat))
 	fixednew[1, ] = 1 * fixed$isNumeric
-	fixednew[2, ] = fixed$indFixed - 2
+	fixednew[2, ] = fixed$indFixed - 1 # convert R index to c++ index
 	for (i in 1:ncol(fixednew)) {
 
 		if (fixed$isNumeric[i]) {
@@ -787,7 +790,7 @@ fixed2Rcpp = function(fixed, lower) {
 		}
 
 	}
-	print(fixednew)
+	# print(fixednew)
 	return(fixednew)
 
 }

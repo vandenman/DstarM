@@ -349,3 +349,10 @@ matplot(tt, abs(Conj(rr)), type = 'l')
 qq =pracma::deconv(DstarM:::convolveC(rowMeans(res$modelDist), dunif(tt)), rowMeans(res$g.hat))
 plot(tt[-1], qq[[2]])
 
+
+# restrictions
+pars <- c(1:5)
+
+DstarM:::imposeFixations()
+DstarM:::imposeFixationsC()
+DstarM::imposeFixationsC()

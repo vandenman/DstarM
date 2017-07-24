@@ -192,11 +192,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // imposeFixationsC
-void imposeFixationsC(arma::vec pars, const arma::mat fixed);
+void imposeFixationsC(arma::vec& pars, const arma::mat fixed);
 RcppExport SEXP _DstarM_imposeFixationsC(SEXP parsSEXP, SEXP fixedSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type pars(parsSEXP);
     Rcpp::traits::input_parameter< const arma::mat >::type fixed(fixedSEXP);
     imposeFixationsC(pars, fixed);
     return R_NilValue;
