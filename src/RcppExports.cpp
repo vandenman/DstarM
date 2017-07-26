@@ -142,14 +142,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // nthCMomentSC
-double nthCMomentSC(arma::vec x, arma::vec fx, int nth);
+double nthCMomentSC(const arma::vec& x, const arma::vec& fx, const int& nth);
 RcppExport SEXP _DstarM_nthCMomentSC(SEXP xSEXP, SEXP fxSEXP, SEXP nthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type fx(fxSEXP);
-    Rcpp::traits::input_parameter< int >::type nth(nthSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type fx(fxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nth(nthSEXP);
     rcpp_result_gen = Rcpp::wrap(nthCMomentSC(x, fx, nth));
     return rcpp_result_gen;
 END_RCPP

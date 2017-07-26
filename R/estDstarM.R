@@ -133,7 +133,11 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 		stop('Kernel bandwith must be larger than or equal to the step size of the time grid.',
 			 call. = FALSE)
 	}
-	stopifnot(c('rt', 'response') %in% names(data))
+
+	if (!all(c("rt", "response") %in% colnames(data)))
+		stop("'data' must be a data.frame with the following columnnames:\n - 'rt' for reaction times.\n - 'response' for responses.\n - 'condition' for manipulations (optional).")
+
+
 	stopifnot(is.numeric(data$rt))
 	if (!(length(unique(data$response)) == 2 | length(levels(data$response)) ==  2)) {
 		stop('There need to be at least 2 response options in data$response. If only one response option has been observed, data$response should be a factor with 2 levels where the levels represent the response options.')
@@ -239,7 +243,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	# perhaps make it possible to also smooth? although users can also do this themselves since
 	# they are already supplying their own densities.
 	if (DstarM && is.null(mg)) {
-		kernel = rev(stats::dunif(tt, 0, h))
+		kernel = rev(by * stats::dunif(tt, 0, h))
 		for (i in 1:dim(g)[2L]) {
 			g[, i] = customConvolveO(as.double(g[, i]), kernel)[seq_along(tt)]
 		}
@@ -479,11 +483,20 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 		warning("Solution contained improper pdfs. No decision model distributions have been saved. Perhaps rerun the analysis with a more a narrow time grid.",
 				immediate. = TRUE, call. = FALSE)
 	}
-	out[c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
-		  'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist")] =
-		list(tt, g, m, ncondition, var.data, var.m, restr.mat, splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist)
+
+	conditionNames <- sort(unique(data$condition))
+
+	out2 = list(tt, g, m, ncondition, var.data, var.m, restr.mat,
+				splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist,
+				conditionNames)
+	names(out2) <- c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
+					'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
+					"conditionNames")
+	out <- c(out, out2)
 	class(out) = 'DstarM'
+
 	return(out)
+
 }
 
 # custom functions: do the same as their names but without error handling

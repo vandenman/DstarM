@@ -166,7 +166,7 @@ double nthMomentSC(const arma::vec& x, const arma::vec& fx, const int& nth) {
 }
 
 // [[Rcpp::export]]
-double nthCMomentSC(arma::vec x, arma::vec fx, int nth) {
+double nthCMomentSC(const arma::vec& x, const arma::vec& fx, const int& nth) {
 
 	double ex = arma::as_scalar(arma::trapz(x, x % fx));
 	arma::vec dif = x - ex;
@@ -183,7 +183,6 @@ arma::vec getVarC(arma::mat Pdf, const arma::vec& tt, const arma::mat& mm2) {
 
 	const int nc = Pdf.n_cols;
 	arma::vec out(nc);
-
 	for (int i = 0; i < nc; ++i) {
 
 		out(i) = nthCMomentSC(tt, Pdf.col(i), 2);
@@ -456,7 +455,7 @@ double totalobjectiveC(arma::vec pars, arma::vec& tt, const arma::vec& ql, const
 
 			arma::vec varModel = getVarC(pdf, tt, mm2);
 			arma::vec varNonDec = varData - varModel;
-			if (arma::any((varNonDec < 0) * (arma::abs(varNonDec) < pow(2, -52)))) {
+			if (arma::any(varNonDec < 0)) { // % (arma::abs(varNonDec) < pow(2, -52)))) { # redundant?
 
 				// Rcpp::Rcout << "var restriction " << 1 << std::endl;
 				return 1e9;

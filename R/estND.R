@@ -92,6 +92,14 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 			stop('Kernel bandwith must be larger than or equal to the step size of the time grid.',
 				 call. = FALSE)
 		}
+		ncondition = max(c(1, length(unique(data$condition)))) # get number of conditions
+		if (ncondition == 1 & is.null(data$condition)) {
+			data$condition = 1 # necessary for split(data, condition & response)
+		}
+		if (ncondition != res$ncondition) {
+			warning(sprintf("Number of conditions in supplied data (%d) does not match number of conditions in decision model (%d)",
+							ncondition, res$ncondition), call. = FALSE, immediate. = TRUE)
+		}
 		# recalculate modelDist and g to the accuracy of tt
 		stopifnot(length(unique(round(diff(tt), 10))) == 1) # also copy to objective.wrapper
 		mm = matrix(0, ncondition * 2, ncondition)
@@ -297,7 +305,14 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 			res.r[[jidx]] = out
 		}
 	}
-	names(res.r) = paste0('ND', 1:length(res.r))
+	if (is.null(res[["conditionNames"]])) { # to remove: backwards compatability
+		names(res.r) = paste0('ND', 1:length(res.r))
+	} else {
+		u <- unique(res$splits)
+		nms <- sapply(u, function(x, all, nms) paste(nms[which(all == x)], collapse = "_"),
+			   all = resD$splits, nms = resD$conditionNames)
+		names(res.r) <- nms
+	}
 	if (is.null(dist)) {
 		r.hat = matrix(data = 0, nrow = length(tt), ncol = length(res.r))
 		# store estimated pars in common elements of ttr and ttt (rounding because floats)
@@ -311,6 +326,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		GlobalOptimizer = objVals[!is.na(objVals)]
 		r.hat = dist
 	}
+
 	# Calculate some descriptives for the estimated densities
 	descriptives = matrix(NA, nrow = 6, ncol = dim(r.hat)[2L],
 						  dimnames = list(c('25%', '50%', '75%', 'mean', 'var', 'mode'),
@@ -325,6 +341,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 	descriptives[5, ] = apply(r.hat, 2, nth.cmomentS, x = tt, nth = 2) # variance
 	descriptives[6, ] = tt[apply(r.hat, 2, which.max)] # mode
 	# collect output
+
 	out = list(r.hat = r.hat, tt = tt, ttr = ttr, GlobalOptimizer = GlobalOptimizer,
 			   zp = zp, descriptives = descriptives)
 	class(out) = 'DstarM'
