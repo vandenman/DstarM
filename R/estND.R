@@ -310,7 +310,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 	} else {
 		u <- unique(res$splits)
 		nms <- sapply(u, function(x, all, nms) paste(nms[which(all == x)], collapse = "_"),
-			   all = resD$splits, nms = resD$conditionNames)
+			   all = res$splits, nms = res$conditionNames)
 		names(res.r) <- nms
 	}
 	if (is.null(dist)) {

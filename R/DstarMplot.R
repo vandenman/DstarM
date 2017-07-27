@@ -41,7 +41,7 @@ plot.DstarM = function(x, what = 'model', ...) {
 
 		if (is.null(dots$col))
 			dots$col <- seq_len(nc)
-		legend("topright", colnames(dots$y), col = dots$col, lty = dots$lty, bty = "n")
+		graphics::legend("topright", colnames(dots$y), col = dots$col, lty = dots$lty, bty = "n")
 
 	}
 }

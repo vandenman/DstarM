@@ -345,10 +345,6 @@ void imposeFixationsC(arma::vec& pars, const arma::mat fixed) {
 
 }
 
-
-
-
-
 // [[Rcpp::export]]
 arma::mat getPdfC(arma::vec& tt, arma::mat pars, const arma::mat& mm, const bool& DstarM, const bool& oscPdf, const double& precision) {
 

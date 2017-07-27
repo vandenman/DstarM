@@ -4,15 +4,19 @@
 \alias{rtDescriptives}
 \title{Descriptives of reaction time data}
 \usage{
-rtDescriptives(data)
+rtDescriptives(data, plot = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{data}{A reaction time dataset. Must be a dataframe with $rt, $condition
 and $response.}
+
+\item{plot}{Logical, should a density plot of all condition-response pairs be made?}
+
+\item{verbose}{Logical, should a table of counts and proportions be printed?}
 }
 \value{
-An object of class 'D*M', containing raw counts and proportions for
-condition response pairs, conditions, and responses.
+Invisibly returns an object of class 'D*M'. It's first element is \code{table} and contains raw counts and proportions for
+condition response pairs, conditions, and responses. It's second element \code{plot} contains a ggplot object.
 }
 \description{
 Descriptives of reaction time data
@@ -22,11 +26,13 @@ This function and \code{\link{rtHist}} are helper functions to inspect raw data.
 }
 \examples{
 tt = seq(0, 5, .01)
-dat = simData(n = 3e5, pars = rep(.5, 5), tt = tt, pdfND = dbeta(tt, 10, 30))
+pars = matrix(.5, 5, 2)
+pars[1, ] <- 1
+pars[2, ] <- c(0, 2)
+dat = simData(n = 3e3, pars = pars, tt = tt, pdfND = dbeta(tt, 10, 30))
 x = rtDescriptives(dat)
-x
-print(x, what = 'cr')
-print(x, what = 'c')
-print(x, what = 'r')
-print(x, digits = 20)
+
+print(x$table, what = 'cr')
+print(x$table, what = 'c')
+print(x$table, what = 'r')
 }
