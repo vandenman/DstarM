@@ -1,6 +1,8 @@
 #' Do a D*M analysis
 #'
-#' @param data A dataframe with: a column named \code{rt} containing response times in ms,
+#' @param formula A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}
+#' @param data A dataframe for looking up data specified in formula.
+#' For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
 #' a column named \code{response} containing at most 2 response options, and an
 #' optional column named \code{condition} containing a numeric index as to which conditions
 #' observations belong.
@@ -115,52 +117,25 @@
 #' @useDynLib DstarM
 
 #' @export
-estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
+estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), lower, upper,
 					 Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
 					 splits = rep.int(0, (ncondition)), forceRestriction = TRUE,
 					 mg = NULL, h = 1, pars, fun.density = Voss.density,
 					 args.density = list(), fun.dist = chisq,
 					 args.dist = list(tt = tt), verbose = TRUE, useRcpp = FALSE) {
 	# Error handling
-	Optim = OptimCheck(Optim)
+	Optim = errCheckOptim(Optim)
 	by = unique(zapsmall(diff(tt)))
-	if (length(by) != 1) {
-		stop('Time grid tt must be equally spaced and length(unique(zapsmall(diff(tt)))) == 1 must be TRUE.',
-			 call. = FALSE)
-	}
-	# if h is smaller than by, the kernel to be convoluted with consists only of 0s.
-	if (h < by) {
-		stop('Kernel bandwith must be larger than or equal to the step size of the time grid.',
-			 call. = FALSE)
-	}
 
-	if (!all(c("rt", "response") %in% colnames(data)))
-		stop("'data' must be a data.frame with the following columnnames:\n - 'rt' for reaction times.\n - 'response' for responses.\n - 'condition' for manipulations (optional).")
+	data <- getData(formula, data)
+	rt <- data[["rt"]]
+	response <- data[["response"]]
+	condition <- data[["condition"]]
+	hasConditions <- data[["hasConditions"]]
+	data <- data[["data"]]
 
-
-	stopifnot(is.numeric(data$rt))
-	if (!(length(unique(data$response)) == 2 | length(levels(data$response)) ==  2)) {
-		stop('There need to be at least 2 response options in data$response. If only one response option has been observed, data$response should be a factor with 2 levels where the levels represent the response options.')
-	}
-	if (any(data$rt > max(tt))) {
-		stop('Observations in data$rt outside of time grid. any(data$rt > max(tt)) must be FALSE.',
-			 call. = FALSE)
-	}
-	# check if upper and lower appear in response options.
-	note = NULL
-	if (any(!(c('upper', 'lower') %in% data$response))) {
-		rsp = unique(data$response)
-		if (!(length(rsp) ==  1 & rsp[1] %in% c('upper', 'lower'))) {
-			note = sprintf("Note: Unique responses (%s) are recoded to 'lower' and 'upper' respectively.\n",
-						   paste(sort(rsp), collapse = ', '))
-			cat(note)
-		}
-	}
-	stopifnot(all(data$rt <= max(tt)))
-	ncondition = max(c(1, length(unique(data$condition)))) # get number of conditions
-	if (ncondition == 1 & is.null(data$condition)) {
-		data$condition = 1 # necessary for split(data, condition & response)
-	}
+	note <- errCheckData(data = data, tt = tt, h = h, by = by)
+	ncondition = length(unique(data[[condition]])) # get number of conditions
 
 	# mm is a helper matrix. matrix multiplication with this matrix sums every 2 columns
 	# often pdfs needs to be summed over conditions,
@@ -208,7 +183,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	}
 	# rcpp checks
 	if (useRcpp && !(identical(fun.density, Voss.density) || identical(fun.dist, chisq))) {
-		stop("useRcpp currently only implemented for fun.density = Voss.density and fun.dist = chisq.")
+		stop("useRcpp only implemented for fun.density = Voss.density and fun.dist = chisq.")
 	}
 
 	# Indexing based on restrictions on nondecision distribution and number of conditions
@@ -218,15 +193,13 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	for (i in 1:dim(group)[2L]) {
 		mm2[group[, i], i] = 1
 	}
-	rt = split(data$rt, list(data$response, data$condition))
+	rt = split(data[[rt]], list(data[[response]], data[[condition]]))
 	n = (ql <- lengths(rt)) %*% mm2
 
 	if (is.null(mg)) { # obtain data density
 		g = getGhat(rt = rt, tt, ncondition, mm, by)
 	} else { # if a model or data density is supplied
-		if (!all(is.matrix(mg), dim(mg) == c(length(tt), 2*ncondition))) {
-			stop('mg must be a matrix of length(tt) x ncondition.', call. = FALSE)
-		}
+		errCheckDatamg(mg, tt, ncondition)
 		g = mg
 		#n = Inf # irrelevent number
 		SE = 0
@@ -257,16 +230,9 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	var.data = var.data * (1 + SE * sqrt(2 / (n - 1))) # TODO: include ref
 
 	# ii and jj are vectors that contain all combinations of p and p' to compare in the objective function
-	ii = matrix(NA, ((dim(group)[1L]) * (dim(group)[1L] - 1L)) / 2, dim(group)[2L])
-	jj = ii
-	for (i in 1:dim(group)[2L]) {
-		temp1 = rep(stats::na.omit(group[-1L, i]), 1L:(length(stats::na.omit(group[, i])) - 1L))
-		ii[1L:length(temp1), i] = temp1
-		temp2 = group[unlist(lapply(2L:length(stats::na.omit(unique(group[, i]))), function(x) 1L:(x - 1L))), i]
-		jj[1L:length(temp2), i] = temp2
-	}
-	ii = stats::na.omit(c(ii))
-	jj = stats::na.omit(c(jj))
+	iijj <- getCombinations(group)
+	ii <- iijj[["ii"]]
+	jj <- iijj[["jj"]]
 
 	# Impose parameter constraints
 	# restrictions between conditions are imposed via a numerical matrix
@@ -291,8 +257,13 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	lower = lower[ind]
 	upper = upper[ind]
 
-	# make every columnn of restr.mat temporarily a list
-	# restr.mat = unlist(apply(restr.mat, 2, list), recursive = FALSE, use.names = FALSE)
+	# get restrictions
+	fixed <- getFixed(fixed, names(lower), useRcpp)
+	indFixed <- fixed$indFixed
+	if (!is.null(indFixed)) {
+		lower = lower[-indFixed]
+		upper = upper[-indFixed]
+	}
 
 	# keep only arguments in args.density that appear in fun.density
 	args.density = args.density[names(args.density) %in% names(formals(fun.density))]
@@ -316,23 +287,6 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 	}
 	if (missing(pars)) { # change to is is.null(pars)?
 
-		if (length(fixed)) {
-			# remove fixed parameters
-			indFixed = which(names(lower) %in%  fixed[1L, ]) # get parameter indices to remove
-			if (!length(indFixed)) {
-				# something with provided names and possible names
-				print(paste('names fixed:', fixed[1L, ]))
-				print(paste(c('possible names:', names(lower)), collapse = ' '))
-				stop('no matches in names supplied by fixed and names of parameters.')
-			}
-			# something with if replacement is character then look up if it exists in names(lower)
-			lower = lower[-indFixed]
-			upper = upper[-indFixed]
-			replacement = sapply(strsplit(fixed[2, ], ' '), `[[`, 1) # finds first value; extend to ' ' and */+- ? # does this equal making stuff in the restr.mat in the same column equal?
-			fixedMat = rbind(fixed, replacement)
-			fixed = list(fixedMat = fixedMat, indFixed = indFixed,
-						 isNumeric = suppressWarnings(!is.na(as.numeric(fixedMat[3, ]))))
-		}
 		argsList$fixed = fixed
 
 		# do differential evolution
@@ -354,18 +308,19 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 		if (useRcpp) {
 
 			argsList$fn = totalobjectiveC
+			argsList$fixed = fixed$mat
+			argsList$anyFixed = fixed$anyFixed
 
 			# imposeFixations(argsList$fixed, lower, names(lower))
 			# imposeFixationsC(pars = lower, fixed = qq)
 			# browser()
-			if (length(fixed) == 0) {
-				argsList$anyFixed = FALSE
-				argsList$fixed = matrix(1, 1, 1) # c++ does not accept NULL
-			} else {
-			 	argsList$anyFixed = TRUE
-			# 	browser()
-			 	argsList$fixed = fixed2Rcpp(argsList$fixed, lower)
-			}
+			# if (length(fixed) == 0) {
+			# 	argsList$anyFixed = FALSE
+			# 	argsList$fixed = matrix(1, 1, 1) # c++ does not accept NULL
+			# } else {
+			#  	argsList$anyFixed = TRUE
+			#  	argsList$fixed = fixed2Rcpp(argsList$fixed, lower)
+			# }
 
 		} else {
 			argsList$all = FALSE
@@ -395,20 +350,10 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 						   restr.mat = restr.mat)
 			class(tempOut) = 'DstarM'
 			prevSize = 0 # to avoid deleting notes/ Starting...
+
 			# do DEoptim for steptol iterations with custom printing and custom convergence checks
 			for (i in 1:nrep) {
-				# This problem has been solved. Commented code is left here in case something comes up.
-				# to uncomment when DEoptim() freezes.
-				# saves the random seed so the exact call to DEoptim() can be investigated.
-				# if (sum(Optim$steptol[1:(i-1)]) >= 600) { # 600 should be iteration where DEoptim freezes
-				#   # toSave = ls(name = sys.frame(), all.names = TRUE)
-				#   randomseed = .Random.seed
-				#   toSave = ls(all.names = TRUE)
-				#   save(list = toSave,
-				#        file = paste0('C:/Users/donvd/_Laptop/ResMas/Internship/DstarM/massSimulation/Simulation/Emailed/Envir', sum(Optim$steptol[1:(i-1)]), '.Rdata'))
-				#   browser()
-				# }
-				# browser()
+
 				out = do.call(DEoptim::DEoptim, argsList)
 				argsList$control$initialpop = out$member$pop # update population value
 				argsList$control$itermax = Optim$steptol[i+1] + 1 # update population value
@@ -441,7 +386,9 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 
 			argsList$control$itermax = Optim$itermax
 			argsList$control$steptol = Optim$steptol[1]
+			argsList$control$storepopfrom = Optim$steptol[1]+1
 			argsList$control$reltol = Optim$reltol
+
 			out = do.call(DEoptim::DEoptim, argsList)
 			niter = out$optim$iter
 			nfeval = out$optim$nfeval
@@ -450,10 +397,14 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 
 		# gather relevant output
 		Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
+		if (!is.null(fixed$fixedNames)) {
+			names(Bestvals)[names(Bestvals) == ""] <- fixed$fixedNames
+		}
 		# calculate model densities at parameter estimates
 		pars = Bestvals[c(restr.mat)] # extract all parameters
-		# dim(pars) = dim(restr.mat)
-		# collect partial output
+
+
+
 		out = list(Bestvals = Bestvals, fixed = fixed, GlobalOptimizer = out,
 				   Debug = list(niter = niter, nfeval = nfeval, itermax = Optim$itermax),
 				   note = note)
@@ -493,7 +444,7 @@ estDstarM = function(data, tt, restr = NULL, fixed = list(), lower, upper,
 					'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
 					"conditionNames")
 	out <- c(out, out2)
-	class(out) = 'DstarM'
+	class(out) = 'DstarM.fitD'
 
 	return(out)
 
@@ -623,51 +574,6 @@ nth.momentS = function(x, fx, nth = 1, n = length(x)) simpson(x, x^nth * fx, n)
 # Estimate n-th central moment of a distribution via simpson integration
 nth.cmomentS = function(x, fx, nth = 1, n = length(x)) simpson(x, (x - simpson(x, x*fx, n))^nth * fx, n)
 
-# Do error handling on Optim and if necessary set defaults
-OptimCheck = function(Optim, values = c(1e-3, 1e3, 50, .9, 0, 0)) {
-	if (!is.list(Optim)) {
-		stop('Optim must be a list', call. = FALSE)
-	}
-	ch = !(names(Optim) %in% names(formals(DEoptim::DEoptim.control)))
-	if (sum(ch) == 1) {
-		warning(sprintf('%s is not an argument of DEoptim.control(). It is unused.',
-						paste0('Optim$', names(Optim)[ch])),
-				call. = FALSE, immediate. = TRUE)
-	} else if (any(ch)) {
-		nms = paste0('Optim$', names(Optim)[ch])
-		last = length(nms)
-		nms1 = paste0(nms[-last],
-					  ifelse(last > 2, ', ', ' '),
-					  collapse = '')
-		nms2 = nms[last]
-		warning(sprintf('%sand %s are not arguments of DEoptim.control(). They are unused.',
-						nms1, nms2),
-				call. = FALSE)
-	}
-	names = c('reltol', 'itermax', 'steptol', 'CR', 'trace', 'parallelType')
-	bounds = c(rep('<=', 3), rep('<', 3))
-	for (i in 1:length(names)) {
-		if (is.null(Optim[[names[i]]])) {
-			Optim[[names[i]]] = values[i]
-		} else {
-			if (!is.numeric(Optim[[names[i]]])) {
-				stop(sprintf('Optim$%s must be numeric.',
-							 names[i]), call. = FALSE)
-			}
-			if (is.nan(Optim[[names[i]]])) {
-				stop(sprintf('Optim$%s cannot contain NaN values.',
-							 names[i]), call. = FALSE)
-			}
-			if (do.call(bounds[i], list(Optim[[names[i]]], 0))) {
-				stop(sprintf('Optim$%s must be %s.',
-							 names[i],
-							 ifelse(bounds[i] == '>', 'positive', 'non-negative')), call. = FALSE)
-			}
-		}
-	}
-	return(Optim)
-}
-
 # checks if pdf is unimodal. Only works for pdfs, returns TRUE if unimodal, FALSE otherwise
 oscCheck = function(pdf) {
 	check = rle(sign(zapsmall(diff(pdf))))
@@ -741,7 +647,7 @@ total.objective = function(pars, tt, g, ql, restr.mat,
 # imposes fixations from fixed onto pars
 imposeFixations = function(fixed, pars, parnames) {
 
-	if (length(fixed)) {
+	if (fixed$anyFixed) {
 		for (i in 1:length(fixed$indFixed)) { # loop over everything to be looked up
 
 			if (fixed$isNumeric[i]) { # numeric replacement
@@ -768,44 +674,11 @@ imposeFixations = function(fixed, pars, parnames) {
 
 }
 
-is.DstarM = function(x) identical(class(x), 'DstarM')
+is.DstarM = function(x) inherits(x, 'DstarM')
+is.DstarMfitD = function(x) inherits(x, 'DstarM.fitD')
+is.DstarMfitND = function(x) inherits(x, 'DstarM.fitND')
+is.DstarMfitObs = function(x) inherits(x, 'DstarM.fitObs')
 
-fixed2Rcpp = function(fixed, lower) {
 
-	fixednew = matrix(0, nrow = 5, ncol = ncol(fixed$fixedMat))
-	fixednew[1, ] = 1 * fixed$isNumeric
-	fixednew[2, ] = fixed$indFixed - 1 # convert R index to c++ index
-	for (i in 1:ncol(fixednew)) {
-
-		if (fixed$isNumeric[i]) {
-			fixednew[3, i] = as.numeric(fixed$fixedMat[2, i])
-		} else {
-
-			vals = strsplit(x = fixed$fixedMat[2, i], split = " ")[[1]]
-			if (any(length(vals) != 3,
-					identical(vals, fixed$fixedMat[3, i]),
-					!(vals[1] %in% names(lower)),
-					!vals[2] %in% c("+", "-", "/", "*"),
-					(vals[3] %in% names(lower)))) {
-				msg = paste(c("Incorrect input for argument fixed. Note that:",
-							"1) The first symbol(s) in fixed must denote a parameter to look up in names(lower).",
-							"3) The second symbol must be a reference to '+', '-', '/', '*'.",
-							"3) The third symbol must be a constant numeric.",
-							"4) Symbols must be separated by spaces (BAD: 'a2/2' GOOD: 'a2 / 2').",
-							" ",
-							sprintf("Problem detected at input: '%s'", fixed$fixedMat[3, i])),
-							collapse = "\n")
-				stop(cat(msg))
-			}
-			fixednew[3, i] = ifelse(is.na(vals[3]), 1, as.numeric(vals[3]))      # constant
-			fixednew[4, i] = which(names(lower) == vals[1])                      # location (zero index)
-			fixednew[5, i] = switch(vals[2], "+" = 0, "-" = 1, "*" = 2, "/" = 3) # operator
-		}
-
-	}
-	# print(fixednew)
-	return(fixednew)
-
-}
 
 

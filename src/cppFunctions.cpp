@@ -422,16 +422,7 @@ double totalobjectiveC(arma::vec pars, arma::vec& tt, const arma::vec& ql, const
 		}
 	}
 
-	// Rcpp::Rcout << "pars:\n" << restr << std::endl;
-
 	arma::mat pdf = getPdfC(tt, restr, mm, DstarM, oscPdf, precision);
-
-	// Rcpp::Rcout << "pdf.n_elem: " << pdf.n_elem << std::endl;
-	// Rcpp::Rcout << "pdf.n_cols: " << pdf.n_cols << std::endl;
-	// Rcpp::Rcout << "pdf.n_rows: " << pdf.n_rows << std::endl;
-	// Rcpp::Rcout << "g.n_elem: " << g.n_elem << std::endl;
-	// Rcpp::Rcout << "g.n_cols: " << g.n_cols << std::endl;
-	// Rcpp::Rcout << "g.n_rows: " << g.n_rows << std::endl;
 
 	if (pdf.n_elem == 1) {
 		return 1e9;

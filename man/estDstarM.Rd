@@ -4,15 +4,18 @@
 \alias{estDstarM}
 \title{Do a D*M analysis}
 \usage{
-estDstarM(data, tt, restr = NULL, fixed = list(), lower, upper,
-  Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
+estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
+  upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
   splits = rep.int(0, (ncondition)), forceRestriction = TRUE, mg = NULL,
   h = 1, pars, fun.density = Voss.density, args.density = list(),
   fun.dist = chisq, args.dist = list(tt = tt), verbose = TRUE,
   useRcpp = FALSE)
 }
 \arguments{
-\item{data}{A dataframe with: a column named \code{rt} containing response times in ms,
+\item{formula}{A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}}
+
+\item{data}{A dataframe for looking up data specified in formula.
+For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
 a column named \code{response} containing at most 2 response options, and an
 optional column named \code{condition} containing a numeric index as to which conditions
 observations belong.}
