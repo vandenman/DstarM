@@ -1,7 +1,7 @@
 #' Calculate Mean of the nondecision distribution.
 #'
 #' @param res An object of class D*M.
-#' @param dat The data object used to create \code{res}.
+#' @param data The data object used to create \code{res}.
 #'
 #' @return A vector containing estimates for the mean of the nondecision densities.
 
@@ -13,41 +13,52 @@
 
 # calculate Ter according to splits used in analyses; returns scalar | groups
 #' @export
-getTer = function(res, dat) {
-  stopifnot(class(res) == 'D*M')
-  if (names(res)[1] == 'r.hat') {
-    return(apply(res$r.hat, 2, nth.momentS, x = res$tt))
-  }
-  if (dim(dat)[1L] != res$n) {
-    warning(sprintf('Number of observations used in analysis (%g) does not match number of observations in data provided (%g).',
-                    res$n, dim(dat)[1L]), call. = FALSE, immediate. = TRUE)
-  }
+getTer = function(res, data, formula = NULL) {
 
-  if (is.null(res$splits) & !is.null(res$split)) res$splits = res$split # backward compatability
+	if (!(is.DstarM.fitD(res) || is.DstarM.fitND(res)))
+		stop("res should be output from either estDstarM or estND.")
 
-  ncondition = res$ncondition
-  splits = res$splits
-  m = res$modelDist
+	# nondecision output is easy
+	if (is.DstarM.fitND(res)) {
+		return(apply(res$r.hat, 2, nth.momentS, x = res$tt))
+	}
+	if (dim(data)[1L] != res$n) {
+		warning(sprintf('Number of observations used in analysis (%g) does not match number of observations in data provided (%g).',
+						res$n, dim(dat)[1L]), call. = FALSE, immediate. = TRUE)
+	}
 
-  group = groups(ncondition, splits)
-  mm2 = matrix(0, 2*ncondition, dim(group)[2L])
-  for (i in 1:dim(group)[2L]) {
-    mm2[group[, i], i] = 1
-  }
+	if (is.null(res$splits) & !is.null(res$split)) res$splits = res$split # backward compatability
 
-  m = m %*% mm2
-  m = m %*% (diag(dim(m)[2L]) / (colSums(mm2) / 2))
-  uniq = unique(dat$condition)
-  group = groups(ncondition, splits, TRUE)
-  for (i in 1:length(group)) {
-    group[i] = uniq[i]
-  }
-  muDat = rep.int(0, dim(group)[2L])
-  for (i in dim(group)[2L]) {
-    muDat[i] = mean(dat$rt[dat$condition %in% group[, i]])
-  }
+	data <- getData(resD[["formula"]], data)
+	rtime <- data[["rtime"]]
+	response <- data[["response"]]
+	condition <- data[["condition"]]
+	hasConditions <- data[["hasConditions"]]
+	data <- data[["data"]]
 
-  muMod = apply(m, 2, nth.momentS, x = res$tt)
-  return(muDat - muMod)
+	ncondition <- res$ncondition
+	splits <- res$splits
+	m <- res$modelDist
+
+	group <- groups(ncondition, splits)
+	mm2 <- matrix(0, 2*ncondition, dim(group)[2L])
+	for (i in 1:dim(group)[2L]) {
+		mm2[group[, i], i] = 1
+	}
+
+	m = m %*% mm2
+	m = m %*% (diag(dim(m)[2L]) / (colSums(mm2) / 2))
+	uniq = unique(dat[[condition]])
+	group = groups(ncondition, splits, TRUE)
+	for (i in 1:length(group)) {
+		group[i] = uniq[i]
+	}
+	muDat = rep.int(0, dim(group)[2L])
+	for (i in dim(group)[2L]) {
+		muDat[i] = mean(dat[[rtime]][dat[[condition]] %in% group[, i]])
+	}
+
+	muMod = apply(m, 2, nth.momentS, x = res$tt)
+	return(muDat - muMod)
 }
 

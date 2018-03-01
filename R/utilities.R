@@ -1,6 +1,10 @@
 # the functions in this file are mainly helper functions for other files
+is.DstarM = function(x) inherits(x, 'DstarM')
+is.DstarM.fitD = function(x) inherits(x, 'DstarM.fitD')
+is.DstarM.fitND = function(x) inherits(x, 'DstarM.fitND')
+is.DstarM.fitObs = function(x) inherits(x, 'DstarM.fitObs')
 
-errCheckData <- function(data, tt, h, by) {
+errCheckData <- function(data, tt, h, by, rtime, response, condition) {
 
 	# Does error handling on the data and returns notes if necessary.
 	if (length(by) != 1) {
@@ -13,30 +17,32 @@ errCheckData <- function(data, tt, h, by) {
 			 call. = FALSE)
 	}
 
-	if (!all(c("rt", "response") %in% colnames(data)))
-		stop("'data' must be a data.frame with the following columnnames:\n - 'rt' for reaction times.\n - 'response' for responses.\n - 'condition' for manipulations (optional).")
-
-
-	stopifnot(is.numeric(data$rt))
-	if (!(length(unique(data$response)) == 2 | length(levels(data$response)) ==  2)) {
-		stop('There need to be at least 2 response options in data$response. If only one response option has been observed, data$response should be a factor with 2 levels where the levels represent the response options.')
+	stopifnot(is.numeric(data[[rtime]]))
+	if (!(length(unique(data[[response]])) == 2 | length(levels(data[[response]])) ==  2)) {
+		stop(sprintf(paste0(
+			'There need to be at least 2 response options in data[["%s"]]. ',
+			'If only one response option was observed, data[["%s"]] should be a',
+			'factor with 2 levels where the levels represent the response options.'),
+			response, response), call. = FALSE)
 	}
-	if (any(data$rt > max(tt))) {
-		stop('Observations in data$rt outside of time grid. any(data$rt > max(tt)) must be FALSE.',
-			 call. = FALSE)
+	rangeT <- range(data[[rtime]])
+	if (any(rangeT < 0, rangeT > max(tt), rangeT < min(tt))) {
+		stop(sprintf(
+			'Observations in data[["%s"]] outside of time grid. any(data[["%s"]] > max(tt)) must be FALSE.',
+			 rtime), call. = FALSE)
 	}
 	# check if upper and lower appear in response options.
 	note = NULL
-	if (any(!(c('upper', 'lower') %in% data$response))) {
-		rsp = unique(data$response)
+	if (any(!(c('upper', 'lower') %in% data[[response]]))) {
+		rsp = unique(data[[response]])
 		if (!(length(rsp) ==  1 & rsp[1] %in% c('upper', 'lower'))) {
 			note = sprintf("Note: Unique responses (%s) are recoded to 'lower' and 'upper' respectively.\n",
 						   paste(sort(rsp), collapse = ', '))
 			cat(note)
 		}
 	}
-	stopifnot(all(data$rt <= max(tt)))
-	return(list(note = note, by = by))
+	stopifnot(all(data[[rtime]] <= max(tt)))
+	return(note)
 }
 
 errCheckOptim = function(Optim, values = c(1e-3, 1e3, 50, .9, 0, 0)) {
@@ -94,9 +100,14 @@ errCheckDatamg <- function(mg, tt, ncondition) {
 
 getData <- function(formula, data, checks = TRUE) {
 
-	noFormula <- is.null(formula)
-	if (noFormula)
+	if (!is.data.frame(data))
+		stop(sprintf("data should be a data.frame"), call. = FALSE)
+
+	if (is.DstarM.fitD(formula)) {
+		formula <- formula[["formula"]]
+	} else if (is.null(formula)) {
 		formula <- response ~ rt + condition
+	}
 
 	terms <- terms.formula(formula, data = data)
 	origNames <- rownames(attr(terms, "factors"))
@@ -110,7 +121,7 @@ getData <- function(formula, data, checks = TRUE) {
 	}
 
 	response <- origNames[1]
-	rt <- origNames[2]
+	rtime <- origNames[2]
 	condition <- origNames[3]
 
 	data <- model.frame(formula, data = data)
@@ -118,10 +129,7 @@ getData <- function(formula, data, checks = TRUE) {
 		data[[condition]] <-  1
 	}
 
-	if (!is.numeric(data[[rt]]) || any(dat[[rt]] < 0)) {
-		stop(sprintf("%s is not numeric or has negative values.", origNames[2]))
-	}
-	return(list(data = data, rt = rt, response = response, condition = condition,
+	return(list(data = data, rtime = rtime, response = response, condition = condition,
 				hasConditions = hasConditions))
 }
 
@@ -158,12 +166,10 @@ getFixed <- function(fixed, nms, useRcpp) {
 		fixed = list(fixedMat = fixedMat, indFixed = indFixed,
 					 isNumeric = suppressWarnings(!is.na(as.numeric(fixedMat[3, ]))),
 					 fixedNames = fixedNames,
-					 fixed$anyFixed <- TRUE)
+					 anyFixed = TRUE)
 
 		if (useRcpp) {
 			fixed$mat <- fixed2Rcpp(fixed, nms)
-			fixed$anyFixed <- TRUE
-
 		}
 	} else if (useRcpp) {
 

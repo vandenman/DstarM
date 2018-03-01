@@ -47,3 +47,20 @@ test_that("estDstarM useRcpp = TRUE works", {
 		tol = 1e-4
 	)
 })
+
+test_that("rtDescriptives works", {
+
+	obj <- rtDescriptives(data = dat, plot = FALSE, verbose = FALSE)
+
+	expect_equal(
+		object = obj$table,
+		expected = structure(list(counts = structure(list(conditionResponse = structure(c(20L, 80L), .Dim = 1:2, .Dimnames = list("1", c("lower", "upper"))),
+														  condition = 100, response = c(20, 80)), .Names = c("conditionResponse",
+														  												   "condition", "response")), props = structure(list(conditionResponse = structure(c(0.2,
+														  												   																				  0.8), .Dim = 1:2, .Dimnames = list("1", c("lower", "upper"))),
+														  												   												  condition = 1, response = c(0.2, 0.8)), .Names = c("conditionResponse",
+														  												   												  												   "condition", "response")), responses = c("lower", "upper")), .Names = c("counts",
+														  												   												  												   																		"props", "responses"), class = "DstarM")
+	)
+
+})

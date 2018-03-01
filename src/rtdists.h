@@ -80,7 +80,7 @@ fmax(double a, double b)
 #endif
 
 /* forward declarations from Rfastdm.c */
- 
+
  // Forward declarations for R-callable functions
 void dfastdm   (int *in_numvalues, double *in_params, double *in_RTs, double *in_precision, double *out_densities_a, double *out_densities_0);
 void dfastdm_b (int *in_numvalues, double *in_params, double *in_RTs, double *in_precision, int *boundary, double *out_densities);
@@ -124,11 +124,11 @@ void params_check(double para[p_count], double zr)
 /* from density.c  */
 
 // DstarM: alternative for isinf.
-static int isinf(double x) {
-	
-	return (fabs(x) > 1.797693e+308);
-	
-}
+// static int isinf(double x) {
+//
+// 	return (fabs(x) > 1.797693e+308);
+//
+// }
 
 
 

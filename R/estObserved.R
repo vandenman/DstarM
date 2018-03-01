@@ -58,14 +58,14 @@
 
 #' @export
 estObserved = function(resDecision, resND = NULL, data = NULL, interpolateND = FALSE, tt = NULL) {
-  if (!is.DstarM(resDecision)) {
+  if (!is.DstarM.fitD(resDecision)) {
     stop('Argument resDecision must be of class "DstarM".', call. = FALSE)
   }
 
   fit = list()
 
   if (resDecision$DstarM) {
-    if (!is.DstarM(resND)) {
+    if (!is.DstarM.fitND(resND)) {
       stop('Argument resND must be of class "DstarM".', call. = FALSE)
     }
 
@@ -168,7 +168,7 @@ estObserved = function(resDecision, resND = NULL, data = NULL, interpolateND = F
              obsIdx = obsIdx, ncondition = resDecision$ncondition,
              resDecision = resDecision, resND = resND,
              interpolateND = interpolateND)
-  class(res) = "DstarM"
+  class(res) = "DstarM.fitObs"
   return(res)
 }
 

@@ -39,28 +39,30 @@
 #'}
 
 #' @export
-chisqFit = function(resObserved, data, DstarM = FALSE, tt = NULL) {
+chisqFit <- function(resObserved, data, DstarM = FALSE, tt = NULL, formula = NULL) {
 
-  if (is.DstarM(resObserved)) {
+  if (is.DstarM.fitObs(resObserved)) {
 
     if (is.null(tt)) {
 
-      tt = resObserved$tt # time grid
-      m = resObserved$obs # model implied densities
+      tt <- resObserved$tt # time grid
+      m <- resObserved$obs # model implied densities
 
     } else {
 
-      m = getPdfs(resObserved$resDecision, tt)
+      m <- getPdfs(resObserved$resDecision, tt)
 
     }
 
+  	formula <- resObserved[["resDecision"]][["formula"]]
+
   } else { # assuming custom densities
 
-    m = resObserved
+    m <- resObserved
 
   }
 
-  by = unique(zapsmall(diff(tt))) # stepsize of time grid
+  by <- unique(zapsmall(diff(tt))) # stepsize of time grid
 
   if (length(by) != 1) {
     stop('Time grid tt must be equally spaced and length(unique(zapsmall(diff(tt)))) == 1 must be TRUE.',

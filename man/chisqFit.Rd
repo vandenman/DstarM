@@ -4,7 +4,7 @@
 \alias{chisqFit}
 \title{Calculate model fit}
 \usage{
-chisqFit(resObserved, data, DstarM = FALSE, tt = NULL)
+chisqFit(resObserved, data, DstarM = FALSE, tt = NULL, formula = NULL)
 }
 \arguments{
 \item{resObserved}{either output from \code{\link{estObserved}} or a matrix containing custom densities to calculate the fitness for.}

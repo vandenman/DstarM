@@ -124,17 +124,17 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 					 args.density = list(), fun.dist = chisq,
 					 args.dist = list(tt = tt), verbose = TRUE, useRcpp = FALSE) {
 	# Error handling
-	Optim = errCheckOptim(Optim)
-	by = unique(zapsmall(diff(tt)))
+	Optim <- errCheckOptim(Optim)
+	by <- unique(zapsmall(diff(tt)))
 
 	data <- getData(formula, data)
-	rt <- data[["rt"]]
+	rtime <- data[["rtime"]]
 	response <- data[["response"]]
 	condition <- data[["condition"]]
 	hasConditions <- data[["hasConditions"]]
 	data <- data[["data"]]
-
-	note <- errCheckData(data = data, tt = tt, h = h, by = by)
+	note <- errCheckData(data = data, tt = tt, h = h, by = by,
+						 rtime = rtime, response = response, condition = condition)
 	ncondition = length(unique(data[[condition]])) # get number of conditions
 
 	# mm is a helper matrix. matrix multiplication with this matrix sums every 2 columns
@@ -193,7 +193,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 	for (i in 1:dim(group)[2L]) {
 		mm2[group[, i], i] = 1
 	}
-	rt = split(data[[rt]], list(data[[response]], data[[condition]]))
+	rt = split(data[[rtime]], list(data[[response]], data[[condition]]))
 	n = (ql <- lengths(rt)) %*% mm2
 
 	if (is.null(mg)) { # obtain data density
@@ -439,10 +439,10 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 
 	out2 = list(tt, g, m, ncondition, var.data, var.m, restr.mat,
 				splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist,
-				conditionNames)
+				conditionNames, formula)
 	names(out2) <- c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
 					'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
-					"conditionNames")
+					"conditionNames", "formula")
 	out <- c(out, out2)
 	class(out) = 'DstarM.fitD'
 
@@ -673,11 +673,6 @@ imposeFixations = function(fixed, pars, parnames) {
 	return(pars)
 
 }
-
-is.DstarM = function(x) inherits(x, 'DstarM')
-is.DstarMfitD = function(x) inherits(x, 'DstarM.fitD')
-is.DstarMfitND = function(x) inherits(x, 'DstarM.fitND')
-is.DstarMfitObs = function(x) inherits(x, 'DstarM.fitObs')
 
 
 

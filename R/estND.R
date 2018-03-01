@@ -71,7 +71,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 				 Optim = list(), verbose = TRUE, dist = NULL, NDindex, max = 100, useRcpp = FALSE) {
 	# zp - zero padding: adding a number of zeros to avoid numerical artefacts
 	# these will be forced to 0 after the estimation procedure
-	stopifnot(is.DstarM(res))
+	stopifnot(is.DstarM.fitD(res))
 
 	if (xor(is.null(tt), is.null(data))) {
 		stop("Supply both a time grid and the data to calculate the nondecision model at a custom time grid. Only one was supplied.")
@@ -79,23 +79,23 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 
 	ncondition = res$ncondition
 	if (!any(is.null(tt), is.null(data))) { # necessary to recalculate time grids
-		by = unique(zapsmall(diff(tt)))
-		if (length(by) != 1) {
-			stop('Time grid tt must be equally spaced and length(unique(zapsmall(diff(tt)))) == 1 must be TRUE.',
-				 call. = FALSE)
-		}
+
+		data <- getData(resD[["formula"]], data)
+		rtime <- data[["rtime"]]
+		response <- data[["response"]]
+		condition <- data[["condition"]]
+		hasConditions <- data[["hasConditions"]]
+		data <- data[["data"]]
+
 		if (is.null(h)) { # for backwards compatability.
-			h = 1
+			h <- 1
 		}
-		# if h is smaller than by, the kernel to be convoluted with consists only of 0s.
-		if (h < by) {
-			stop('Kernel bandwith must be larger than or equal to the step size of the time grid.',
-				 call. = FALSE)
-		}
-		ncondition = max(c(1, length(unique(data$condition)))) # get number of conditions
-		if (ncondition == 1 & is.null(data$condition)) {
-			data$condition = 1 # necessary for split(data, condition & response)
-		}
+		by <- unique(zapsmall(diff(tt)))
+		note <- errCheckData(data = data, tt = tt, h = h, by = by,
+							 rtime = rtime, response = response, condition = condition)
+
+		ncondition = length(unique(data$condition)) # get number of conditions
+
 		if (ncondition != res$ncondition) {
 			warning(sprintf("Number of conditions in supplied data (%d) does not match number of conditions in decision model (%d)",
 							ncondition, res$ncondition), call. = FALSE, immediate. = TRUE)
@@ -104,7 +104,8 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		stopifnot(length(unique(round(diff(tt), 10))) == 1) # also copy to objective.wrapper
 		mm = matrix(0, ncondition * 2, ncondition)
 		mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] = 1
-		rt = split(data$rt, list(data$response, data$condition))
+
+		rt = split(data[[rtime]], list(data[[response]], data[[condition]]))
 
 		g = getGhat(rt, tt, ncondition, mm = mm, by = by)
 		# convolve data density with uniform kernel
@@ -141,10 +142,10 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 	tmp = Reduce('+', lapply(Optim, is.list))
 	tmp = ifelse(is.integer(tmp), tmp, 0)
 	if (tmp == 0) {
-		OptimAll = OptimCheck(Optim, values = c(1e-4, 1e4, 200, .9, 0, 0))
+		OptimAll = errCheckOptim(Optim, values = c(1e-4, 1e4, 200, .9, 0, 0))
 		OptimAll = rep(list(OptimAll), length(NDindex))
 	} else if (tmp == length(NDindex)) {
-		OptimAll = lapply(Optim, OptimCheck, values = c(1e-4, 1e4, 200, .9, 0, 0))
+		OptimAll = lapply(Optim, errCheckOptim, values = c(1e-4, 1e4, 200, .9, 0, 0))
 	} else {
 		stop('Optim must be eiter a list of lists with length(NDindex) or a list with arguments for DEoptim.control().', call. = FALSE)
 	}
@@ -344,7 +345,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 
 	out = list(r.hat = r.hat, tt = tt, ttr = ttr, GlobalOptimizer = GlobalOptimizer,
 			   zp = zp, descriptives = descriptives)
-	class(out) = 'DstarM'
+	class(out) = 'DstarM.fitND'
 	if (verbose & is.null(dist)) {
 		cat('\nAnalyses complete!')
 	}

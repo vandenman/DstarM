@@ -31,13 +31,13 @@
 rtDescriptives = function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
 
 	data <- getData(formula, data)
-	rt <- data[["rt"]]
+	rtime <- data[["rtime"]]
 	response <- data[["response"]]
 	condition <- data[["condition"]]
 	hasConditions <- data[["hasConditions"]]
 	data <- data[["data"]]
 
-	lenCR = tapply(data[[rt]], list(data[[condition]], data[[response]]), length)
+	lenCR = tapply(data[[rtime]], list(data[[condition]], data[[response]]), length)
 	d = dim(lenCR)
 	lenC = .rowSums(lenCR, m = d[1], n = d[2])
 	lenR = .colSums(lenCR, m = d[1], n = d[2])
@@ -59,9 +59,9 @@ rtDescriptives = function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
 
 	if (hasConditions) {
 		tmp <- sprintf("interaction(%s, %s)", response, condition)
-		mapping <- ggplot2::aes_string(x = rt, group = tmp, fill = tmp)
+		mapping <- ggplot2::aes_string(x = rtime, group = tmp, fill = tmp)
 	} else {
-		mapping <- ggplot2::aes_string(x = rt, group = response, fill = response)
+		mapping <- ggplot2::aes_string(x = rtime, group = response, fill = response)
 	}
 	graph <- ggplot2::ggplot(data = data, mapping = mapping) +
 		ggplot2::geom_density(alpha = .25)
