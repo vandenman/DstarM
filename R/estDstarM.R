@@ -35,6 +35,7 @@
 #' of those values have an identical nondecision distribution.
 #' @param forceRestriction if TRUE the variance restriction is enforced.
 #' @param mg Supply a data density, usefull if a uniform kernel approximation does not suffice.
+#' Take care that densities of response categories within conditions are degenerate and therefore integrate to the proportion a category was observed (and not to 1).
 #' @param h bandwidth of a uniform kernel used to generate data based densities.
 #' @param pars Optional parameter vector to supply if one wishes to evaluate the objective
 #' function in a given parameter vector. Only used if \code{itermax} equal zero.
@@ -124,8 +125,8 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 					 args.density = list(), fun.dist = chisq,
 					 args.dist = list(tt = tt), verbose = TRUE, useRcpp = FALSE) {
 	# Error handling
-	Optim <- errCheckOptim(Optim)
-	by <- unique(zapsmall(diff(tt)))
+	Optim = errCheckOptim(Optim)
+	by = unique(zapsmall(diff(tt)))
 
 	data <- getData(formula, data)
 	rtime <- data[["rtime"]]
@@ -133,6 +134,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 	condition <- data[["condition"]]
 	hasConditions <- data[["hasConditions"]]
 	data <- data[["data"]]
+
 	note <- errCheckData(data = data, tt = tt, h = h, by = by,
 						 rtime = rtime, response = response, condition = condition)
 	ncondition = length(unique(data[[condition]])) # get number of conditions
@@ -366,13 +368,17 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 				# print progress
 				tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
 				names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixed$fixedMat[1, ]
-				replicate(prevSize,  cat('\010'))
+
+				if (i > 1)
+					cat(sprintf("\n%s\n", paste(rep("=", nCharRep), collapse = "")))
 				msg1 = utils::capture.output(
 					cat(sprintf('Total iterations done: %s \012Improvement over last %s iterations: %10g \012Objective function value: %10g \012Current parameter estimates:\012',
 								sum(Optim$steptol[1:i]), Optim$steptol[i], improvement, newval)),
 					print(tempOut)
 				)
 				cat(paste0(msg1, collapse = '\n'))
+				if (i == 1)
+					nCharRep <- max(nchar(msg1))
 				prevSize = sum(nchar(msg1)) + length(msg1) - 1
 				if (oldval - newval < Optim$reltol * newval) { # check for convergence
 					break
@@ -439,10 +445,10 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 
 	out2 = list(tt, g, m, ncondition, var.data, var.m, restr.mat,
 				splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist,
-				conditionNames, formula)
+				conditionNames)
 	names(out2) <- c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
 					'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
-					"conditionNames", "formula")
+					"conditionNames")
 	out <- c(out, out2)
 	class(out) = 'DstarM.fitD'
 
@@ -674,6 +680,18 @@ imposeFixations = function(fixed, pars, parnames) {
 
 }
 
+#' @export
+normalize <- function(x, tt, props = NULL) {
 
+	x <- as.matrix(x)
+	ncondition <- ncol(x) / 2
+	mm <- matrix(0, ncondition * 2, ncondition)
+	mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] <- 1
 
+	if (!is.null(props))
+		x <- x %*% diag(props)
 
+	x <- x %*% (diag(dim(x)[2L]) / rep(apply(x %*% mm, 2, simpson, x = tt), each = 2))
+
+	return(x)
+}

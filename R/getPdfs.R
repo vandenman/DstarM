@@ -19,7 +19,7 @@
 getPdfs = function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density, args.density = list()) {
 
   if (!missing(resDecision)) {
-    if (!is.DstarM(resDecision) || names(resDecision)[1L] != "Bestvals") {
+    if (!is.DstarM.fitD(resDecision)) {
       stop("Argument res must be output of estDstarM()")
     } else {
       fun.density = resDecision$fun.density

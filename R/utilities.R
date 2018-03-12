@@ -175,6 +175,8 @@ getFixed <- function(fixed, nms, useRcpp) {
 
 		fixed <- list(mat = matrix(1, 1, 1),
 					  anyFixed = FALSE)
+	} else {
+		fixed <- list(anyFixed = FALSE)
 	}
 
 	return(fixed)
@@ -218,3 +220,4 @@ fixed2Rcpp = function(fixed, nms) {
 	return(fixednew)
 
 }
+

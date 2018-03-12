@@ -1,5 +1,3 @@
-#' @export
-
 # custom plot function for `D*M` output
 plot.DstarM = function(x, what = 'model', ...) {
 	dots = list(...)

@@ -124,7 +124,7 @@ print.DstarM.Descriptives <- function(x, na.print = '-', ...) {
 	print(x$graph)
 }
 
-summary.DstarM.fitD = function(object, ...) {
+summary.DstarM.fitD <- function(object, ...) {
   if (names(object)[1L] != 'Bestvals') {
     stop('No summary method available for this object.')
   }
@@ -166,3 +166,53 @@ summary.DstarM.fitD = function(object, ...) {
   }
 }
 
+simplePlot <- function(dots, def.args) {
+	# helper function for plot methods
+
+	ind = unlist(lapply(dots[names(def.args)], is.null))
+	dots[names(def.args)[ind]] = def.args[ind]
+	do.call(graphics::matplot, dots)
+	if (!is.null(colnames(dots$y))) {
+
+		nc <- NCOL(dots$y)
+		if (is.null(dots$lty))
+			dots$lty <- rep(1, nc)
+
+		if (is.null(dots$col))
+			dots$col <- seq_len(nc)
+		graphics::legend("topright", colnames(dots$y), col = dots$col, lty = dots$lty, bty = "n")
+
+	}
+}
+
+
+#' @export
+plot.DstarM.fitD <- function(x, y = NULL, what = c('model', 'data'), ...) {
+	what <- match.arg(what)
+	dots = list(...)
+	def.args = list(bty = 'n', xlab = 'Reaction Time', las = 1, ylab = 'density',
+					x = x$tt, type = 'b', lty = 1, pch = 1)
+	if (what == 'model') {
+		dots$y = x$modelDist
+	} else if (what == 'data') {
+		dots$y = x$g.hat
+	}
+	simplePlot(dots, def.args)
+}
+
+plot.DstarM.fitND <- function(x, ...) {
+	dots = list(...)
+	def.args = list(bty = 'n', xlab = 'Reaction Time', las = 1, ylab = 'density',
+					x = x$tt, type = 'b', lty = 1, pch = 1)
+	def.args$xlim = range(x$ttr)
+	dots$y = x$r.hat
+	simplePlot(dots, def.args)
+}
+
+plot.DstarM.fitObs <- function(x, ...) {
+	dots = list(...)
+	def.args = list(bty = 'n', xlab = 'Reaction Time', las = 1, ylab = 'density',
+					x = x$tt, type = 'b', lty = 1, pch = 1)
+	dots$y = x$obsNorm
+	simplePlot(dots, def.args)
+}

@@ -67,7 +67,7 @@
 
 #' @export
 # estimate nondecision distribution
-estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1, lower.bound = 0,
+estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1, lower.bound = 0,
 				 Optim = list(), verbose = TRUE, dist = NULL, NDindex, max = 100, useRcpp = FALSE) {
 	# zp - zero padding: adding a number of zeros to avoid numerical artefacts
 	# these will be forced to 0 after the estimation procedure
@@ -77,7 +77,7 @@ estND = function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1
 		stop("Supply both a time grid and the data to calculate the nondecision model at a custom time grid. Only one was supplied.")
 	}
 
-	ncondition = res$ncondition
+	ncondition <- res$ncondition
 	if (!any(is.null(tt), is.null(data))) { # necessary to recalculate time grids
 
 		data <- getData(resD[["formula"]], data)
