@@ -80,7 +80,7 @@ chisqFit <- function(resObserved, data, DstarM = FALSE, tt = NULL, formula = NUL
     }
 
     # sanity check: do number of conditions in objects data and resObserved match?
-    if (is.DstarM(resObserved) && !
+    if (is.DstarM.fitObs(resObserved) && !
         is.null(resObserved$ncondition) &&
         ncondition != resObserved$ncondition) {
 
@@ -88,7 +88,7 @@ chisqFit <- function(resObserved, data, DstarM = FALSE, tt = NULL, formula = NUL
                    as.integer(resObserved$ncondition), as.integer(ncondition)))
 
 
-    } else if (!is.DstarM(resObserved) && 2*ncondition != NCOL(resObserved)) {
+    } else if (!is.DstarM.fitObs(resObserved) && 2*ncondition != NCOL(resObserved)) {
 
       stop(sprintf("Number of conditions in resObserved (%d) does not match number of conditions in the data (%d)",
                    as.integer(NCOL(resObserved)), as.integer(2*ncondition)))

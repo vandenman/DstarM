@@ -27,20 +27,16 @@
 #'
 #' @export
 estCdf = function(x) {
-  if (is.DstarM(x)) {
-    if (names(x)[1] != 'obsNorm') {
-      stop('Please supply output from estObserved.',
-           call. = FALSE)
-    } else {
+  if (is.DstarM.fitObs(x)) {
       x = x$obsNorm
-    }
-  }
-  if (is.matrix(x)) {
+  } else if (is.matrix(x)) {
     out = apply(x, 2, estCdf)
     colnames(out) = colnames(x)
     return(out)
-  } else {
+  } else if (is.vector(x) && !is.list(x)){
     return(cumsum(x) / sum(x))
+  } else {
+  	stop("Incorrect input.")
   }
 }
 
