@@ -13,7 +13,7 @@
 #' with the estimated nondecision distributions. If a traditional analysis was run the argument resND can
 #' be omitted.
 #'
-#' @return a list (S3 object of class 'DstarM') that contains:
+#' @return Returns a list of class \code{DstarM.fitObs} that contains:
 #'
 #' \item{obsNorm}{A matrix containing normalized densities of each condition response pair.}
 #' \item{obs}{A matrix containing unnormalized densities of each condition response pair.}

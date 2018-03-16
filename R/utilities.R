@@ -1,8 +1,9 @@
 # the functions in this file are mainly helper functions for other files
-is.DstarM = function(x) inherits(x, 'DstarM')
-is.DstarM.fitD = function(x) inherits(x, 'DstarM.fitD')
-is.DstarM.fitND = function(x) inherits(x, 'DstarM.fitND')
-is.DstarM.fitObs = function(x) inherits(x, 'DstarM.fitObs')
+is.DstarM <- function(x) inherits(x, 'DstarM')
+is.DstarM.fitD <- function(x) inherits(x, 'DstarM.fitD')
+is.DstarM.fitND <- function(x) inherits(x, 'DstarM.fitND')
+is.DstarM.fitObs <- function(x) inherits(x, 'DstarM.fitObs')
+anyDstarM <- function(x) is.DstarM.fitD(x) || is.DstarM.fitND(x) || is.DstarM.fitObs(x)
 
 errCheckData <- function(data, tt, h, by, rtime, response, condition) {
 
@@ -45,7 +46,7 @@ errCheckData <- function(data, tt, h, by, rtime, response, condition) {
 	return(note)
 }
 
-errCheckOptim = function(Optim, values = c(1e-3, 1e3, 50, .9, 0, 0)) {
+errCheckOptim <- function(Optim, values = c(1e-3, 1e3, 50, .9, 0, 0)) {
 
 	# Does error handling on Optim and if necessary set defaults
 
@@ -182,7 +183,7 @@ getFixed <- function(fixed, nms, useRcpp) {
 	return(fixed)
 }
 
-fixed2Rcpp = function(fixed, nms) {
+fixed2Rcpp <- function(fixed, nms) {
 
 	# Rcpp requires some more specific input
 	fixednew = matrix(0, nrow = 5, ncol = ncol(fixed$fixedMat))
@@ -221,3 +222,29 @@ fixed2Rcpp = function(fixed, nms) {
 
 }
 
+#' @export
+upgradeDstarM <- function(x) {
+
+	if (!is.DstarM(x)) {
+
+		if (!anyDstarM(x))
+			warning(sprintf("upgradeDstarM called on object of class %s (expected DstarM)", class(x)))
+
+	} else {
+
+		if (is.list(x)) {
+
+			nms <- names(x)
+
+			switch(nms[1],
+				   "Bestvals" = {class(x) <- "DstarM.fitD"},
+				   "r.hat"    = {class(x) <- "DstarM.fitND"},
+				   "obsNorm"  = {class(x) <- "DstarM.fitObs"},
+				   x
+			)
+		}
+	}
+
+	return(x)
+
+}

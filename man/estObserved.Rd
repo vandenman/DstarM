@@ -23,7 +23,7 @@ on the grid of the nondecision model. This tends to produce better fit values.}
 \item{tt}{Optional time grid to recalculate the model densities on. Unused in case of a DstarM analysis.}
 }
 \value{
-a list (S3 object of class 'DstarM') that contains:
+Returns a list of class \code{DstarM.fitObs} that contains:
 
 \item{obsNorm}{A matrix containing normalized densities of each condition response pair.}
 \item{obs}{A matrix containing unnormalized densities of each condition response pair.}

@@ -69,7 +69,7 @@
 #' See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
 #' This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
 #'
-#' @return Returns an object of class \code{'D*M'}.
+#' @return Returns a list of class \code{DstarM.fitD} that contains:
 #' \item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
 #' \item{fixed}{Numeric vector. Contains the best parameter estimates.}
 #' \item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}

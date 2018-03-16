@@ -59,7 +59,8 @@ of those values have an identical nondecision distribution.}
 
 \item{forceRestriction}{if TRUE the variance restriction is enforced.}
 
-\item{mg}{Supply a data density, usefull if a uniform kernel approximation does not suffice.}
+\item{mg}{Supply a data density, usefull if a uniform kernel approximation does not suffice.
+Take care that densities of response categories within conditions are degenerate and therefore integrate to the proportion a category was observed (and not to 1).}
 
 \item{h}{bandwidth of a uniform kernel used to generate data based densities.}
 
@@ -85,7 +86,7 @@ printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace}
 of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.}
 }
 \value{
-Returns an object of class \code{'D*M'}.
+Returns a list of class \code{DstarM.fitD} that contains:
 \item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
 \item{fixed}{Numeric vector. Contains the best parameter estimates.}
 \item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}
