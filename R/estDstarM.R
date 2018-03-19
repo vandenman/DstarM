@@ -44,11 +44,11 @@
 #' @param fun.dist Function used to calculate distances between densities.
 #' Defaults to a chi-square distance.
 #' @param args.dist A named list containing additional arguments to be send to fun.dist.
-#' @param verbose Logical, should intermediate output be printed? Defaults to TRUE.
-#' Estimation will speed up if set to FALSE. If set to TRUE, \code{Optim$trace} will be
+#' @param verbose Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
+#' Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 #' forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
 #' printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
-#' \code{Optim}.
+#' \code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).
 #' @param useRcpp Logical, setting this to true will make the objective function use an Rcpp implementation
 #' of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.
 #'
@@ -123,8 +123,17 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 					 splits = rep.int(0, (ncondition)), forceRestriction = TRUE,
 					 mg = NULL, h = 1, pars, fun.density = Voss.density,
 					 args.density = list(), fun.dist = chisq,
-					 args.dist = list(tt = tt), verbose = TRUE, useRcpp = FALSE) {
+					 args.dist = list(tt = tt), verbose = 1, useRcpp = FALSE) {
 	# Error handling
+	verbose <- as.integer(verbose)
+	if (!is.numeric(verbose))
+		stop("verbose must be numeric")
+	if (verbose < 0L) {
+		verbose <- 0L
+	} else if (verbose > 2L) {
+		verbose <- 2L
+	}
+
 	Optim = errCheckOptim(Optim)
 	by = unique(zapsmall(diff(tt)))
 
@@ -343,7 +352,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 			argsList$control$foreachArgs = c(list('getPdf', 'getVar', 'oscCheck', 'simpson', 'nth.cmomentS', 'customDdiffusion',
 												  'customApprox', 'customConvolveO'), Optim$foreachArgs)
 		}
-		if (verbose) {
+		if (verbose > 0) {
 			cat(sprintf('Starting %s analysis...\n', ifelse(DstarM, 'D*M', 'Traditional')))
 			argsList$control$itermax = Optim$steptol[1]
 			argsList$control$storepopfrom = Optim$steptol[1] - 1
@@ -354,6 +363,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 			prevSize = 0 # to avoid deleting notes/ Starting...
 
 			# do DEoptim for steptol iterations with custom printing and custom convergence checks
+			before <- Sys.time()
 			for (i in 1:nrep) {
 
 				out = do.call(DEoptim::DEoptim, argsList)
@@ -366,20 +376,39 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 				improvement = oldval - newval
 
 				# print progress
-				tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
-				names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixed$fixedMat[1, ]
+				if (verbose == 1) {
 
-				if (i > 1)
-					cat(sprintf("\n%s\n", paste(rep("=", nCharRep), collapse = "")))
-				msg1 = utils::capture.output(
-					cat(sprintf('Total iterations done: %s \012Improvement over last %s iterations: %10g \012Objective function value: %10g \012Current parameter estimates:\012',
-								sum(Optim$steptol[1:i]), Optim$steptol[i], improvement, newval)),
-					print(tempOut)
-				)
-				cat(paste0(msg1, collapse = '\n'))
-				if (i == 1)
-					nCharRep <- max(nchar(msg1))
-				prevSize = sum(nchar(msg1)) + length(msg1) - 1
+					diff <- Sys.time() - before
+					currentIter <- sum(Optim$steptol[1:i])
+					totIter <- sum(Optim$steptol)
+					# based on dplyr::progress_estimated
+					avg <- diff / currentIter
+					eta <- avg * (totIter - currentIter)
+
+					cat(sprintf(
+						"Iteration: %d | Rel. improvement: %.3g | ETA: %.2f %s \n",
+						currentIter,
+						(oldval - newval) / newval,
+						eta,
+						attr(eta, "unit")
+					))
+
+				} else if (verbose == 2) {
+					tempOut$Bestvals = imposeFixations(fixed = fixed, pars = out$optim$bestmem, parnames = names(lower))
+					names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 0] = fixed$fixedMat[1, ]
+
+					if (i > 1)
+						cat(sprintf("\n%s\n", paste(rep("=", nCharRep), collapse = "")))
+					msg1 = utils::capture.output(
+						cat(sprintf('Total iterations done: %s \012Improvement over last %s iterations: %10g \012Objective function value: %10g \012Current parameter estimates:\012',
+									sum(Optim$steptol[1:i]), Optim$steptol[i], improvement, newval)),
+						print(tempOut)
+					)
+					cat(paste0(msg1, collapse = '\n'))
+					if (i == 1)
+						nCharRep <- max(nchar(msg1))
+					prevSize = sum(nchar(msg1)) + length(msg1) - 1
+				}
 				if (oldval - newval < Optim$reltol * newval) { # check for convergence
 					break
 				} else {
@@ -415,7 +444,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 				   Debug = list(niter = niter, nfeval = nfeval, itermax = Optim$itermax),
 				   note = note)
 
-		if (verbose) {
+		if (verbose > 0) {
 			cat('\nAnalyses complete!\n')
 		}
 

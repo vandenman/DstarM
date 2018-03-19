@@ -26,7 +26,7 @@ test_that("estimation works", {
 
 test_that("estDstarM useRcpp = FALSE works", {
 
-	fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = FALSE)
+	fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = 0)
 
 	expect_equal(
 		object = fitD$Bestvals,
@@ -38,7 +38,7 @@ test_that("estDstarM useRcpp = FALSE works", {
 
 test_that("estDstarM useRcpp = TRUE works", {
 
-	fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = FALSE, useRcpp = TRUE)
+	fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = 0, useRcpp = TRUE)
 
 	expect_equal(
 		object = fitD$Bestvals,
