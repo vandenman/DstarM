@@ -8,7 +8,7 @@ estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
   upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
   splits = rep.int(0, (ncondition)), forceRestriction = TRUE, mg = NULL,
   h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = TRUE,
+  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1,
   useRcpp = FALSE)
 }
 \arguments{
@@ -76,11 +76,11 @@ Defaults to a chi-square distance.}
 
 \item{args.dist}{A named list containing additional arguments to be send to fun.dist.}
 
-\item{verbose}{Logical, should intermediate output be printed? Defaults to TRUE.
-Estimation will speed up if set to FALSE. If set to TRUE, \code{Optim$trace} will be
+\item{verbose}{Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
+Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
 printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
-\code{Optim}.}
+\code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).}
 
 \item{useRcpp}{Logical, setting this to true will make the objective function use an Rcpp implementation
 of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.}
