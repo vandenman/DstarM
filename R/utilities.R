@@ -225,10 +225,10 @@ fixed2Rcpp <- function(fixed, nms) {
 #' @export
 upgradeDstarM <- function(x) {
 
-	if (!is.DstarM(x)) {
+	if (!inherits(x, c("D*M", "DstarM"))) {
 
 		if (!anyDstarM(x))
-			warning(sprintf("upgradeDstarM called on object of class %s (expected DstarM)", class(x)))
+			warning(sprintf("upgradeDstarM called on object of class %s (expected DstarM or D*M)", class(x)))
 
 	} else {
 
