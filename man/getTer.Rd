@@ -10,6 +10,8 @@ getTer(res, data, formula = NULL)
 \item{res}{An object of class D*M.}
 
 \item{data}{The data object used to create \code{res}.}
+
+\item{formula}{Optional formula argument, for when columns names in the data are different from those used to obtain the results.}
 }
 \value{
 A vector containing estimates for the mean of the nondecision densities.

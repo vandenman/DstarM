@@ -19,7 +19,7 @@ print.DstarM.fitND <- function(x, na.print = '-', ...) {
 }
 
 #' @export
-print.Dstarm.fitObs <- function(x, na.print = '-', ...) {
+print.DstarM.fitObs <- function(x, na.print = '-', ...) {
 	print.default(x, na.print = na.print, ...)
 }
 

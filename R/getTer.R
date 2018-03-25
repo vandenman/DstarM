@@ -2,6 +2,7 @@
 #'
 #' @param res An object of class D*M.
 #' @param data The data object used to create \code{res}.
+#' @param formula Optional formula argument, for when columns names in the data are different from those used to obtain the results.
 #'
 #' @return A vector containing estimates for the mean of the nondecision densities.
 
@@ -29,7 +30,7 @@ getTer = function(res, data, formula = NULL) {
 
 	if (is.null(res$splits) & !is.null(res$split)) res$splits = res$split # backward compatability
 
-	data <- getData(resD[["formula"]], data)
+	data <- getData(res[["formula"]], data)
 	rtime <- data[["rtime"]]
 	response <- data[["response"]]
 	condition <- data[["condition"]]
@@ -48,14 +49,14 @@ getTer = function(res, data, formula = NULL) {
 
 	m = m %*% mm2
 	m = m %*% (diag(dim(m)[2L]) / (colSums(mm2) / 2))
-	uniq = unique(dat[[condition]])
+	uniq = unique(data[[condition]])
 	group = groups(ncondition, splits, TRUE)
 	for (i in 1:length(group)) {
 		group[i] = uniq[i]
 	}
 	muDat = rep.int(0, dim(group)[2L])
 	for (i in dim(group)[2L]) {
-		muDat[i] = mean(dat[[rtime]][dat[[condition]] %in% group[, i]])
+		muDat[i] = mean(data[[rtime]][data[[condition]] %in% group[, i]])
 	}
 
 	muMod = apply(m, 2, nth.momentS, x = res$tt)

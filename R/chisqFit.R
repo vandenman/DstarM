@@ -4,6 +4,8 @@
 #' @param data A dataframe containing data.
 #' @param DstarM Logical. Should the DstarM fit measure be calculated or the traditional fit measure?
 #' @param tt time grid custom densities where calculated on. Should only be supplied if \code{resOberved} is a matrix containing custom densities
+#' @param formula Optional formula argument, for when columns names in the data are different from those used to obtain the results.
+#'
 #' @details This function allows a user to manually calculate a chi-square goodness of fit measure for model densities.
 #' This is useful for comparing a traditional analysis and a D*M analysis. For completion, this function can also calculate a
 #' D*M fit measure. We do not recommend usage of the D*M measure. While the chi-square fit measure is

@@ -80,7 +80,7 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
 	ncondition <- res$ncondition
 	if (!any(is.null(tt), is.null(data))) { # necessary to recalculate time grids
 
-		data <- getData(resD[["formula"]], data)
+		data <- getData(res[["formula"]], data)
 		rtime <- data[["rtime"]]
 		response <- data[["response"]]
 		condition <- data[["condition"]]

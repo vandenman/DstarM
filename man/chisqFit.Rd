@@ -14,6 +14,8 @@ chisqFit(resObserved, data, DstarM = FALSE, tt = NULL, formula = NULL)
 \item{DstarM}{Logical. Should the DstarM fit measure be calculated or the traditional fit measure?}
 
 \item{tt}{time grid custom densities where calculated on. Should only be supplied if \code{resOberved} is a matrix containing custom densities}
+
+\item{formula}{Optional formula argument, for when columns names in the data are different from those used to obtain the results.}
 }
 \description{
 Calculate model fit

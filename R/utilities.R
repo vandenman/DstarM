@@ -110,7 +110,7 @@ getData <- function(formula, data, checks = TRUE) {
 		formula <- response ~ rt + condition
 	}
 
-	terms <- terms.formula(formula, data = data)
+	terms <- stats::terms.formula(formula, data = data)
 	origNames <- rownames(attr(terms, "factors"))
 	if (length(origNames) > 3) {
 		stop("More than 3 columns remained after specifying `model.frame(formula, data = data)`")
@@ -125,7 +125,7 @@ getData <- function(formula, data, checks = TRUE) {
 	rtime <- origNames[2]
 	condition <- origNames[3]
 
-	data <- model.frame(formula, data = data)
+	data <- stats::model.frame(formula, data = data)
 	if (ncol(data) == 2) {
 		data[[condition]] <-  1
 	}
@@ -222,6 +222,11 @@ fixed2Rcpp <- function(fixed, nms) {
 
 }
 
+
+#' Upgrade a DstarM object for backwards compatability
+#' @param x an object of class \code{D*M} or \code{DstarM}.
+#' @return An object of class \code{DstarM.fitD}, \code{DstarM.fitND}, or \code{DstarM.fitObs}.
+#'
 #' @export
 upgradeDstarM <- function(x) {
 
