@@ -25,7 +25,7 @@ getTer = function(res, data, formula = NULL) {
 	}
 	if (dim(data)[1L] != res$n) {
 		warning(sprintf('Number of observations used in analysis (%g) does not match number of observations in data provided (%g).',
-						res$n, dim(dat)[1L]), call. = FALSE, immediate. = TRUE)
+						res$n, dim(data)[1L]), call. = FALSE, immediate. = TRUE)
 	}
 
 	if (is.null(res$splits) & !is.null(res$split)) res$splits = res$split # backward compatability

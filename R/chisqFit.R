@@ -76,10 +76,16 @@ chisqFit <- function(resObserved, data, DstarM = FALSE, tt = NULL, formula = NUL
     stop(sprintf("Argument data should be dataframe. The supplied object has mode %s", mode(data)))
   } else {
 
-    ncondition = max(c(1, length(unique(data$condition)))) # get number of conditions
-    if (ncondition == 1 & is.null(data$condition)) {
-      data$condition = 1 # necessary for split(data, condition & response)
-    }
+  	if (!is.matrix(resObserved))
+  		formula <- resObserved$resDecision$formula
+
+  	data <- getData(formula, data)
+  	rtime <- data[["rtime"]]
+  	response <- data[["response"]]
+  	condition <- data[["condition"]]
+  	hasConditions <- data[["hasConditions"]]
+  	data <- data[["data"]]
+    ncondition <- length(unique(data[[condition]])) # get number of conditions
 
     # sanity check: do number of conditions in objects data and resObserved match?
     if (is.DstarM.fitObs(resObserved) && !
@@ -101,7 +107,7 @@ chisqFit <- function(resObserved, data, DstarM = FALSE, tt = NULL, formula = NUL
     mm = matrix(0, ncondition * 2, ncondition)
     mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] = 1
 
-    rt = split(data$rt, list(data$response, data$condition))
+    rt = split(data[[rtime]], list(data[[response]], data[[condition]]))
     ncr = lengths(rt)
     g = getGhat(rt = rt, tt = tt, ncondition = ncondition, mm = mm, by = by)
 

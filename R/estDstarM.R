@@ -118,7 +118,7 @@
 #' @useDynLib DstarM
 
 #' @export
-estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), lower, upper,
+estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(), lower, upper,
 					 Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
 					 splits = rep.int(0, (ncondition)), forceRestriction = TRUE,
 					 mg = NULL, h = 1, pars, fun.density = Voss.density,
@@ -134,8 +134,8 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 		verbose <- 2L
 	}
 
-	Optim = errCheckOptim(Optim)
-	by = unique(zapsmall(diff(tt)))
+	Optim <- errCheckOptim(Optim)
+	by <- unique(zapsmall(diff(tt)))
 
 	data <- getData(formula, data)
 	rtime <- data[["rtime"]]
@@ -146,7 +146,7 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 
 	note <- errCheckData(data = data, tt = tt, h = h, by = by,
 						 rtime = rtime, response = response, condition = condition)
-	ncondition = length(unique(data[[condition]])) # get number of conditions
+	ncondition <- length(unique(data[[condition]])) # get number of conditions
 
 	# mm is a helper matrix. matrix multiplication with this matrix sums every 2 columns
 	# often pdfs needs to be summed over conditions,
@@ -470,17 +470,32 @@ estDstarM = function(formula = NULL, data, tt, restr = NULL, fixed = list(), low
 				immediate. = TRUE, call. = FALSE)
 	}
 
-	conditionNames <- sort(unique(data$condition))
+	conditionNames <- sort(unique(data[[condition]]))
 
-	out2 = list(tt, g, m, ncondition, var.data, var.m, restr.mat,
-				splits, n, DstarM, fun.density, fun.dist, h, args.density, args.dist,
-				conditionNames)
-	names(out2) <- c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
-					'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
-					"conditionNames")
+	out2 = list(
+		tt = tt,
+		g.hat = g,
+		modelDist = m,
+		ncondition = ncondition,
+		var.data = var.data,
+		var.m = var.m,
+		restr.mat = restr.mat,
+		splits = splits,
+		n = n,
+		DstarM = DstarM,
+		fun.density = fun.density,
+		fun.dist = fun.dist,
+		h = h,
+		args.density = args.density,
+		args.dist = args.dist,
+		conditionNames = conditionNames,
+		formula = formula
+	)
+	# names(out2) <- c('tt', 'g.hat', 'modelDist', 'ncondition', 'var.data', 'var.m', 'restr.mat',
+	# 				'splits', 'n', 'DstarM', 'fun.density', 'fun.dist', 'h', "args.density", "args.dist",
+	# 				"conditionNames", 'formula')
 	out <- c(out, out2)
 	class(out) = 'DstarM.fitD'
-
 	return(out)
 
 }
@@ -707,20 +722,4 @@ imposeFixations = function(fixed, pars, parnames) {
 
 	return(pars)
 
-}
-
-#' @export
-normalize <- function(x, tt, props = NULL) {
-
-	x <- as.matrix(x)
-	ncondition <- ncol(x) / 2
-	mm <- matrix(0, ncondition * 2, ncondition)
-	mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] <- 1
-
-	if (!is.null(props))
-		x <- x %*% diag(props)
-
-	x <- x %*% (diag(dim(x)[2L]) / rep(apply(x %*% mm, 2, simpson, x = tt), each = 2))
-
-	return(x)
 }
