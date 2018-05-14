@@ -115,7 +115,7 @@
 #'summary(res)
 #'}
 
-#' @useDynLib DstarM
+#' @useDynLib DstarM, .registration = TRUE
 
 #' @export
 estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(), lower, upper,

@@ -2,70 +2,70 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 simpsonC <- function(x, fx) {
-    .Call('_DstarM_simpsonC', PACKAGE = 'DstarM', x, fx)
+    .Call(`_DstarM_simpsonC`, x, fx)
 }
 
 dunifc <- function(x, a, b) {
-    .Call('_DstarM_dunifc', PACKAGE = 'DstarM', x, a, b)
+    .Call(`_DstarM_dunifc`, x, a, b)
 }
 
 convolveC <- function(x, y) {
-    .Call('_DstarM_convolveC', PACKAGE = 'DstarM', x, y)
+    .Call(`_DstarM_convolveC`, x, y)
 }
 
 convolveC2 <- function(x, y) {
-    .Call('_DstarM_convolveC2', PACKAGE = 'DstarM', x, y)
+    .Call(`_DstarM_convolveC2`, x, y)
 }
 
 chisqC <- function(tt, a, b) {
-    .Call('_DstarM_chisqC', PACKAGE = 'DstarM', tt, a, b)
+    .Call(`_DstarM_chisqC`, tt, a, b)
 }
 
 rObjC3 <- function(r, tt, a, bb, lenPre, lenPost) {
-    .Call('_DstarM_rObjC3', PACKAGE = 'DstarM', r, tt, a, bb, lenPre, lenPost)
+    .Call(`_DstarM_rObjC3`, r, tt, a, bb, lenPre, lenPost)
 }
 
 rObjC2 <- function(r, tt, a, bb, lenPre) {
-    .Call('_DstarM_rObjC2', PACKAGE = 'DstarM', r, tt, a, bb, lenPre)
+    .Call(`_DstarM_rObjC2`, r, tt, a, bb, lenPre)
 }
 
 rObjC1 <- function(r, tt, a, bb, lenPost) {
-    .Call('_DstarM_rObjC1', PACKAGE = 'DstarM', r, tt, a, bb, lenPost)
+    .Call(`_DstarM_rObjC1`, r, tt, a, bb, lenPost)
 }
 
 rObjC0 <- function(r, tt, a, bb) {
-    .Call('_DstarM_rObjC0', PACKAGE = 'DstarM', r, tt, a, bb)
+    .Call(`_DstarM_rObjC0`, r, tt, a, bb)
 }
 
 nthMomentSC <- function(x, fx, nth) {
-    .Call('_DstarM_nthMomentSC', PACKAGE = 'DstarM', x, fx, nth)
+    .Call(`_DstarM_nthMomentSC`, x, fx, nth)
 }
 
 nthCMomentSC <- function(x, fx, nth) {
-    .Call('_DstarM_nthCMomentSC', PACKAGE = 'DstarM', x, fx, nth)
+    .Call(`_DstarM_nthCMomentSC`, x, fx, nth)
 }
 
 getVarC <- function(Pdf, tt, mm2) {
-    .Call('_DstarM_getVarC', PACKAGE = 'DstarM', Pdf, tt, mm2)
+    .Call(`_DstarM_getVarC`, Pdf, tt, mm2)
 }
 
 oscCheckC <- function(x) {
-    .Call('_DstarM_oscCheckC', PACKAGE = 'DstarM', x)
+    .Call(`_DstarM_oscCheckC`, x)
 }
 
 getVoss <- function(rt, pars, precision) {
-    .Call('_DstarM_getVoss', PACKAGE = 'DstarM', rt, pars, precision)
+    .Call(`_DstarM_getVoss`, rt, pars, precision)
 }
 
 imposeFixationsC <- function(pars, fixed) {
-    invisible(.Call('_DstarM_imposeFixationsC', PACKAGE = 'DstarM', pars, fixed))
+    invisible(.Call(`_DstarM_imposeFixationsC`, pars, fixed))
 }
 
 getPdfC <- function(tt, pars, mm, DstarM, oscPdf, precision) {
-    .Call('_DstarM_getPdfC', PACKAGE = 'DstarM', tt, pars, mm, DstarM, oscPdf, precision)
+    .Call(`_DstarM_getPdfC`, tt, pars, mm, DstarM, oscPdf, precision)
 }
 
 totalobjectiveC <- function(pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed) {
-    .Call('_DstarM_totalobjectiveC', PACKAGE = 'DstarM', pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed)
+    .Call(`_DstarM_totalobjectiveC`, pars, tt, ql, ii, jj, varData, g, restr, mm, mm2, DstarM, oscPdf, forceRestriction, precision, anyFixed, fixed)
 }
 

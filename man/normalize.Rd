@@ -16,3 +16,17 @@ normalize(x, tt, props = NULL)
 \description{
 Normalize two pdfs
 }
+\examples{
+tt <- seq(0, 5, .01)
+x1 <- cbind(
+	dexp(tt, .5),
+	dexp(tt, 2)
+)
+x2 <- normalize(x1, tt)
+x3 <- normalize(x1, tt, props = c(.1, .9))
+
+matplot(tt, cbind(x1, x2, x3), type = "l",
+		col = rep(1:3, each = 2), lty = rep(1:2, 3), las = 1, bty = "n")
+legend("topright", legend = rep(paste0("x", 1:3), each = 2),
+	   col = rep(1:3, each = 2), lty = rep(1:2, 3), bty = "n")
+}
