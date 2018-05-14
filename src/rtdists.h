@@ -122,15 +122,7 @@ void params_check(double para[p_count], double zr)
 
 
 /* from density.c  */
-
-// DstarM: alternative for isinf.
-// static int isinf(double x) {
-//
-// 	return (fabs(x) > 1.797693e+308);
-//
-// }
-
-
+// replaced isinf() with !R_FINITE()
 
 static int
 imax(int a, int b)
@@ -200,7 +192,7 @@ g_minus_no_var(double t, double a, double zr, double v)
 	double ta = t/(a*a);
 
 	factor = exp(-a*zr*v - 0.5*v*v*t) / (a*a);
-	if (isinf(factor)) {
+	if (!R_FINITE(factor)) {
 		return 0;
 	}
 	eps = EPSILON / factor;
@@ -240,7 +232,7 @@ integral_v_g_minus(double zr, void *data)
 	double ta = t/(a*a);
 
 	factor = 1 / (a*a * sqrt(t * sv*sv + 1)) * exp(-0.5 * (v*v*t + 2*v*a*zr - a*zr*a*zr*sv*sv) / (t*sv*sv+1));
-	if (isinf(factor)) {
+	if (!R_FINITE(factor)) {
 		return 0;
 	}
 	eps = EPSILON / factor;
