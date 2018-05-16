@@ -13,12 +13,12 @@
 #' @export
 # works for nondecision densities, check if works for estDstarM output.
 getSter <- function(res) {
-
-	if (is.DstarM.fitND(res)) {
-		return(apply(res$r.hat, 2, nth.cmomentS, x = res$tt, nth = 2))
-	} else if (is.DstarM.fitD(res)) {
-		return(res$var.dat - res$var.m)
-	} else {
-		stop("res should be output from either estDstarM or estND.")
-	}
+  
+  if (is.DstarM.fitND(res)) {
+    return(apply(res$r.hat, 2, nth.cmomentS, x = res$tt, nth = 2))
+  } else if (is.DstarM.fitD(res)) {
+    return(res$var.dat - res$var.m)
+  } else {
+    stop("res should be output from either estDstarM or estND.")
+  }
 }

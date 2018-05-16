@@ -29,51 +29,43 @@
 
 
 #' @export
-rtDescriptives = function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
-
-	data <- getData(formula, data)
-	rtime <- data[["rtime"]]
-	response <- data[["response"]]
-	condition <- data[["condition"]]
-	hasConditions <- data[["hasConditions"]]
-	data <- data[["data"]]
-
-	lenCR = tapply(data[[rtime]], list(data[[condition]], data[[response]]), length)
-	d = dim(lenCR)
-	lenC = .rowSums(lenCR, m = d[1], n = d[2])
-	lenR = .colSums(lenCR, m = d[1], n = d[2])
-
-	table = list(
-		counts = list(
-			conditionResponse = lenCR,
-			condition = lenC,
-			response = lenR),
-		props = list(
-			conditionResponse = lenCR / lenC,
-			condition = lenC / sum(lenC),
-			response = lenR / sum(lenR)),
-		responses = colnames(lenCR)
-	)
-	class(table) = 'DstarM'
-	if (verbose)
-		print(table)
-
-	if (hasConditions) {
-		tmp <- sprintf("interaction(%s, %s)", response, condition)
-		mapping <- ggplot2::aes_string(x = rtime, group = tmp, fill = tmp)
-	} else {
-		mapping <- ggplot2::aes_string(x = rtime, group = response, fill = response)
-	}
-	graph <- ggplot2::ggplot(data = data, mapping = mapping) +
-		ggplot2::geom_density(alpha = .25)
-
-	if (plot)
-		print(graph)
-
-	out <- list(table = table, graph = graph)
-	class(out) <- "DstarM.Descriptives"
-	return(invisible(out))
-
+rtDescriptives <- function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
+  
+  data <- getData(formula, data)
+  rtime <- data[["rtime"]]
+  response <- data[["response"]]
+  condition <- data[["condition"]]
+  hasConditions <- data[["hasConditions"]]
+  data <- data[["data"]]
+  
+  lenCR <- tapply(data[[rtime]], list(data[[condition]], data[[response]]), 
+    length)
+  d <- dim(lenCR)
+  lenC <- .rowSums(lenCR, m = d[1], n = d[2])
+  lenR <- .colSums(lenCR, m = d[1], n = d[2])
+  
+  table <- list(counts = list(conditionResponse = lenCR, condition = lenC, 
+    response = lenR), props = list(conditionResponse = lenCR/lenC, condition = lenC/sum(lenC), 
+    response = lenR/sum(lenR)), responses = colnames(lenCR))
+  class(table) <- "DstarM"
+  if (verbose) 
+    print(table)
+  
+  if (hasConditions) {
+    tmp <- sprintf("interaction(%s, %s)", response, condition)
+    mapping <- ggplot2::aes_string(x = rtime, group = tmp, fill = tmp)
+  } else {
+    mapping <- ggplot2::aes_string(x = rtime, group = response, fill = response)
+  }
+  graph <- ggplot2::ggplot(data = data, mapping = mapping) + ggplot2::geom_density(alpha = 0.25)
+  
+  if (plot) 
+    print(graph)
+  
+  out <- list(table = table, graph = graph)
+  class(out) <- "DstarM.Descriptives"
+  return(invisible(out))
+  
 }
 
 

@@ -124,26 +124,26 @@
 #'   if (missing(resObserved)) {
 #'     if (!missing(resDecision)) {
 #'       if (!is.DstarM(resDecision)) {
-#'         stop("Argument resDecision must be of class 'DstarM'", call. = FALSE)
+#'         stop('Argument resDecision must be of class 'DstarM'', call. = FALSE)
 #'       }
 #'       if (!resDecision$DstarM) { # traditional analyses
 #'         resObserved = estObserved(resDecision = resDecision)
 #'       } else {
 #'         if (missing(resND)) {
-#'           stop("Input was a decision model of a 'D*M' analysis, please also supply a nondecision analysis.", call. = FALSE)
+#'           stop('Input was a decision model of a 'D*M' analysis, please also supply a nondecision analysis.', call. = FALSE)
 #'         } else {
 #'           if (!is.DstarM(resND)) {
-#'             stop("Argument resND must be of class 'DstarM'", call. = FALSE)
+#'             stop('Argument resND must be of class 'DstarM'', call. = FALSE)
 #'           }
 #'           resObserved = estObserved(resDecision = resDecision, resND = resND)
 #'         }
 #'       }
 #'     } else {
-#'       stop("Please supply at least argument resObserved or argument resDecision.", call. = FALSE)
+#'       stop('Please supply at least argument resObserved or argument resDecision.', call. = FALSE)
 #'     }
 #'   } else {
 #'     if (!is.DstarM(resObserved)) {
-#'       stop("Argument resObserved must be of class 'DstarM'", call. = FALSE)
+#'       stop('Argument resObserved must be of class 'DstarM'', call. = FALSE)
 #'     }
 #'   }
 #'   if (any(!(c('rt', 'condition') %in% names(data)))) {

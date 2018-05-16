@@ -23,24 +23,24 @@
 #' points(x = qEst, y = p, pch = 18, col = 1:6, cex = 1.75) # add points for intersections
 #'
 #' @export
-estQdf = function(p, x, cdf) {
+estQdf <- function(p, x, cdf) {
   if (is.matrix(cdf)) {
-    out = apply(cdf, 2, estQdf, p = p, x = x)
-    colnames(out) = colnames(cdf)
+    out <- apply(cdf, 2, estQdf, p = p, x = x)
+    colnames(out) <- colnames(cdf)
     return(out)
-  } else if (is.vector(cdf, mode = 'numeric')) {
+  } else if (is.vector(cdf, mode = "numeric")) {
     stopifnot(c(0, 1) %in% p)
-    q = numeric(length = length(p))
-    q[1] = min(x)
-    q[length(q)] = max(x)
+    q <- numeric(length = length(p))
+    q[1] <- min(x)
+    q[length(q)] <- max(x)
     for (i in 2:(length(p) - 1)) {
-      f = stats::approxfun(x, cdf - p[i])
-      q[i] = stats::uniroot(f, range(x))$root
+      f <- stats::approxfun(x, cdf - p[i])
+      q[i] <- stats::uniroot(f, range(x))$root
     }
     return(q)
   } else {
-    stop(sprintf("Argument cdf must be either a vector or a matrix but it is neither. class(%s) = %s.",
-         deparse(substitute(cdf)), class(cdf)), call. = FALSE)
+    stop(sprintf("Argument cdf must be either a vector or a matrix but it is neither. class(%s) = %s.", 
+      deparse(substitute(cdf)), class(cdf)), call. = FALSE)
   }
 }
 

@@ -62,144 +62,151 @@
 #'plotObserved(resObserved = resObs, data = dat, what = 'r', xlim = c(0, 1))
 #'}
 #' @export
-plotObserved = function(resObserved, data, what = c("cr", "c", "r"), layout = NULL,
-						main = NULL, linesArgs = list(), ggplot = FALSE,
-						prob = seq(0, 1, .01), probType = 3,
-						...) {
-	what <- match.arg(what)
-	if (!identical(ggplot, FALSE))
-		warning("Argument 'ggplot' is deprecated and will be ignored.")
-
-	formula = resObserved$resDecision$formula
-	data <- getData(formula, data)
-	rtime <- data[["rtime"]]
-	response <- data[["response"]]
-	condition <- data[["condition"]]
-	# hasConditions <- data[["hasConditions"]]
-	data <- data[["data"]]
-
-	if (what == 'cr') { # by condition-response pair
-		rtList <- split(data[[rtime]], factor(paste(data[[condition]], data[[response]])))
-		dd <- resObserved$obsNorm
-	} else {
-		ncondition = dim(resObserved$obsNorm)[2L] / 2L
-		if (what == 'c') { # by condition
-			rtList <- split(data[[rtime]], factor(data[[condition]]))
-			# helper matrix
-			mm <- matrix(0, ncondition * 2, ncondition)
-			mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] <- .5
-		} else { # by response
-			rtList <- split(data[[rtime]], factor(data[[response]]))
-			val <- 1 / ncondition
-			mm <- matrix(c(val, 0, 0, val), nrow = dim(resObserved$obsNorm)[2L], ncol = 2, byrow = TRUE)
-		}
-		dd <- resObserved$obsNorm %*% mm
-	}
-	tt <- resObserved$tt
-	# define layout
-	if (is.null(layout)) {
-		if (what == 'cr') { # responses within columns
-			layout <- matrix(1:length(rtList), nrow = 2)
-		} else if (what == 'c') { #
-			if (length(rtList) / 2 != floor(length(rtList) / 2) &
-				floor(sqrt(length(rtList))) > 1) {
-				p <- c(1, 1:length(rtList))
-			} else {
-				p <- 1:length(rtList)
-			}
-			layout <- matrix(p, nrow = floor(sqrt(length(rtList))))
-		} else { # 2 columns
-			layout <- matrix(1:length(rtList), ncol = 2)
-		}
-	}  else { # Error Handling
-		if ((dim(resObserved$obsNorm)[2L] %% length(unique(layout))) != 0) {
-			msg <- switch (what,
-						  cr = 'condition-response pairs',
-						  c = 'conditions',
-						  r = 'responses'
-			)
-			warning(sprintf('Number of plots in layout (%d) is not a multiple of the number of %s (%d).',
-							length(unique(layout)), msg, length(rtList)), call. = FALSE, immediate. = TRUE)
-		}
-	}
-	skips <- resObserved$obsIdx
-	# define Titles
-	if (is.null(main)) {
-		if (what == 'cr') {
-			main <- apply(expand.grid(unique(data[[response]]), unique(data[[condition]])), 1,
-						 function(x) paste0('Condition: ', x[2], '\nResponse: ', x[1]))
-		} else {
-			main <- paste(ifelse(what == 'c', 'Condition:', 'Response:'), names(rtList))
-		}
-		main <- paste0(main, ' (N = ', lengths(rtList), ')')
-		main2 <- rep(paste('Unobserved', switch(what, cr = 'condition-response pair', c = 'condition', r = 'response')),
-					length(skips))
-	} else if (is.list(main)) {
-		main2 <- main[[2]]
-		main <- main[[1]]
-	}
-	# change dd and rtList into estimated and observed quantiles
-	if (qq <- !is.null(prob)) {
-		if (!is.vector(prob, mode = 'numeric')) {
-			stop('Argument prob must either be NULL or a numeric vector.')
-		}
-		rtList <- lapply(rtList, stats::quantile, probs = prob)
-		dd <- estQdf(p = prob, x = tt, cdf = estCdf(dd))
-		if (probType == 0) {
-			probIdx <- 1:dim(dd)[1L]
-		} else if (probType == 1) {
-			probIdx <- -1
-		} else if (probType == 2) {
-			probIdx <- -dim(dd)[1L]
-		} else {
-			probIdx <- -c(1, dim(dd)[1L])
-		}
-		rtList <- lapply(rtList, `[`, probIdx)
-		dd <- dd[probIdx, ]
-		prob <- prob[probIdx]
-	}
-	# histogram defaults
-	histArgs <- list(...)
-	histDefArgs <- list(xlab = ifelse(qq, 'Model implied Quantiles', 'Reaction Time'),
-					   ylab = ifelse(qq,  'Observed Quantiles', 'Density'),
-					   las = 1, bty = 'n', freq = FALSE,
-					   breaks = c(0, tt + (tt[2] - tt[1]) / 2))
-	idx <- unlist(lapply(histArgs[names(histDefArgs)], is.null), use.names = FALSE)
-	histArgs[names(histDefArgs)[idx]] <- histDefArgs[idx]
-
-	# lines defaults
-	linesDefArgs <- list(type = 'b', lty = 2, pch = 1, col = 'black', lwd = 1, x = tt)
-	idx <- unlist(lapply(linesArgs[names(linesDefArgs)], is.null), use.names = FALSE)
-	linesArgs[names(linesDefArgs)[idx]] <- linesDefArgs[idx]
-
-	# actual plotting
-	rtIdx <- 1 # a second index for histograms
-	layout(layout)
-	for (i in seq_len(dim(dd)[2L])) {
-		linesArgs$y <- dd[, i]
-		if (i %in% skips) {
-			linesArgs[c('xlim', 'ylim', 'ylab', 'xlab', 'bty', 'las')] <-
-				c(histArgs[c('xlim', 'ylim', 'ylab', 'xlab')], list('n', 1))
-			linesArgs$main = main2[which(i %in% skips)]
-			do.call(graphics::plot, linesArgs)
-			linesArgs[c('xlim', 'ylim', 'main', 'ylab', 'xlab', 'bty', 'las')] <- NULL
-		} else {
-			histArgs$main <- main[rtIdx]
-			histArgs$x <- rtList[[rtIdx]]
-			if (qq) {
-				histArgs$y <- linesArgs$y
-				histArgs[c('breaks', 'freq')] <- NULL
-				do.call(graphics::plot, histArgs)
-				graphics::abline(a = 0, b = 1)
-			} else {
-				do.call(graphics::hist, histArgs)
-				do.call(graphics::lines, linesArgs)
-			}
-			rtIdx <- rtIdx + 1
-		}
-	}
-	layout(1)
-	return(invisible())
-
+plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = NULL, 
+  main = NULL, linesArgs = list(), ggplot = FALSE, prob = seq(0, 1, 0.01), 
+  probType = 3, ...) {
+  what <- match.arg(what)
+  if (!identical(ggplot, FALSE)) 
+    warning("Argument 'ggplot' is deprecated and will be ignored.")
+  
+  formula <- resObserved$resDecision$formula
+  data <- getData(formula, data)
+  rtime <- data[["rtime"]]
+  response <- data[["response"]]
+  condition <- data[["condition"]]
+  # hasConditions <- data[['hasConditions']]
+  data <- data[["data"]]
+  
+  if (what == "cr") {
+    # by condition-response pair
+    rtList <- split(data[[rtime]], factor(paste(data[[condition]], data[[response]])))
+    dd <- resObserved$obsNorm
+  } else {
+    ncondition <- dim(resObserved$obsNorm)[2L]/2L
+    if (what == "c") {
+      # by condition
+      rtList <- split(data[[rtime]], factor(data[[condition]]))
+      # helper matrix
+      mm <- matrix(0, ncondition * 2, ncondition)
+      mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] <- 0.5
+    } else {
+      # by response
+      rtList <- split(data[[rtime]], factor(data[[response]]))
+      val <- 1/ncondition
+      mm <- matrix(c(val, 0, 0, val), nrow = dim(resObserved$obsNorm)[2L], 
+        ncol = 2, byrow = TRUE)
+    }
+    dd <- resObserved$obsNorm %*% mm
+  }
+  tt <- resObserved$tt
+  # define layout
+  if (is.null(layout)) {
+    if (what == "cr") {
+      # responses within columns
+      layout <- matrix(1:length(rtList), nrow = 2)
+    } else if (what == "c") {
+      # 
+      if (length(rtList)/2 != floor(length(rtList)/2) & floor(sqrt(length(rtList))) > 
+        1) {
+        p <- c(1, 1:length(rtList))
+      } else {
+        p <- 1:length(rtList)
+      }
+      layout <- matrix(p, nrow = floor(sqrt(length(rtList))))
+    } else {
+      # 2 columns
+      layout <- matrix(1:length(rtList), ncol = 2)
+    }
+  } else {
+    # Error Handling
+    if ((dim(resObserved$obsNorm)[2L]%%length(unique(layout))) != 0) {
+      msg <- switch(what, cr = "condition-response pairs", c = "conditions", 
+        r = "responses")
+      warning(sprintf("Number of plots in layout (%d) is not a multiple of the number of %s (%d).", 
+        length(unique(layout)), msg, length(rtList)), call. = FALSE, 
+        immediate. = TRUE)
+    }
+  }
+  skips <- resObserved$obsIdx
+  # define Titles
+  if (is.null(main)) {
+    if (what == "cr") {
+      main <- apply(expand.grid(unique(data[[response]]), unique(data[[condition]])), 
+        1, function(x) paste0("Condition: ", x[2], "\nResponse: ", 
+          x[1]))
+    } else {
+      main <- paste(ifelse(what == "c", "Condition:", "Response:"), 
+        names(rtList))
+    }
+    main <- paste0(main, " (N = ", lengths(rtList), ")")
+    main2 <- rep(paste("Unobserved", switch(what, cr = "condition-response pair", 
+      c = "condition", r = "response")), length(skips))
+  } else if (is.list(main)) {
+    main2 <- main[[2]]
+    main <- main[[1]]
+  }
+  # change dd and rtList into estimated and observed quantiles
+  if (qq <- !is.null(prob)) {
+    if (!is.vector(prob, mode = "numeric")) {
+      stop("Argument prob must either be NULL or a numeric vector.")
+    }
+    rtList <- lapply(rtList, stats::quantile, probs = prob)
+    dd <- estQdf(p = prob, x = tt, cdf = estCdf(dd))
+    if (probType == 0) {
+      probIdx <- 1:dim(dd)[1L]
+    } else if (probType == 1) {
+      probIdx <- -1
+    } else if (probType == 2) {
+      probIdx <- -dim(dd)[1L]
+    } else {
+      probIdx <- -c(1, dim(dd)[1L])
+    }
+    rtList <- lapply(rtList, `[`, probIdx)
+    dd <- dd[probIdx, ]
+    prob <- prob[probIdx]
+  }
+  # histogram defaults
+  histArgs <- list(...)
+  histDefArgs <- list(xlab = ifelse(qq, "Model implied Quantiles", "Reaction Time"), 
+    ylab = ifelse(qq, "Observed Quantiles", "Density"), las = 1, bty = "n", 
+    freq = FALSE, breaks = c(0, tt + (tt[2] - tt[1])/2))
+  idx <- unlist(lapply(histArgs[names(histDefArgs)], is.null), use.names = FALSE)
+  histArgs[names(histDefArgs)[idx]] <- histDefArgs[idx]
+  
+  # lines defaults
+  linesDefArgs <- list(type = "b", lty = 2, pch = 1, col = "black", lwd = 1, 
+    x = tt)
+  idx <- unlist(lapply(linesArgs[names(linesDefArgs)], is.null), use.names = FALSE)
+  linesArgs[names(linesDefArgs)[idx]] <- linesDefArgs[idx]
+  
+  # actual plotting
+  rtIdx <- 1  # a second index for histograms
+  layout(layout)
+  for (i in seq_len(dim(dd)[2L])) {
+    linesArgs$y <- dd[, i]
+    if (i %in% skips) {
+      linesArgs[c("xlim", "ylim", "ylab", "xlab", "bty", "las")] <- c(histArgs[c("xlim", 
+        "ylim", "ylab", "xlab")], list("n", 1))
+      linesArgs$main <- main2[which(i %in% skips)]
+      do.call(graphics::plot, linesArgs)
+      linesArgs[c("xlim", "ylim", "main", "ylab", "xlab", "bty", "las")] <- NULL
+    } else {
+      histArgs$main <- main[rtIdx]
+      histArgs$x <- rtList[[rtIdx]]
+      if (qq) {
+        histArgs$y <- linesArgs$y
+        histArgs[c("breaks", "freq")] <- NULL
+        do.call(graphics::plot, histArgs)
+        graphics::abline(a = 0, b = 1)
+      } else {
+        do.call(graphics::hist, histArgs)
+        do.call(graphics::lines, linesArgs)
+      }
+      rtIdx <- rtIdx + 1
+    }
+  }
+  layout(1)
+  return(invisible())
+  
 }
 

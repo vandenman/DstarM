@@ -89,7 +89,7 @@
 #'     args = argsEstObserved
 #'
 #'   } else {
-#'     stop(sprintf("Unsupported input."),
+#'     stop(sprintf('Unsupported input.'),
 #'          call. = FALSE)
 #'   }
 #'   # function to loop over -- to be declared elsewhere

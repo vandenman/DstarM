@@ -22,39 +22,38 @@
 #' rtHist(dat, breaks = tt, xlim = c(0, 1))
 
 #' @export
-rtHist = function(data, what = 'cr', layout = NULL, nms = NULL, ggplot = FALSE, ...) {
-  rt = switch(what,
-              cr = split(data$rt, list(data$response, data$condition)),
-              c = split(data$rt, data$condition),
-              r = split(data$rt, data$response))
-  if (is.null(layout)) layout = matrix(1:length(rt), nrow = floor(sqrt(length(rt))))
-  else stopifnot(length(unique(c(layout))) == length(rt))
-  if (is.null(nms)) nms = names(rt)
-  else stopifnot(length(nms) == length(rt))
-
-  histArgs = list(...)
-  histDefArgs = list(xlab = 'Reaction Time', las = 1, bty = 'n')
-  idx = unlist(lapply(histArgs[names(histDefArgs)], is.null), use.names = FALSE)
-  histArgs[names(histDefArgs)[idx]] = histDefArgs[idx]
-
+rtHist <- function(data, what = "cr", layout = NULL, nms = NULL, ggplot = FALSE, 
+  ...) {
+  rt <- switch(what, cr = split(data$rt, list(data$response, data$condition)), 
+    c = split(data$rt, data$condition), r = split(data$rt, data$response))
+  if (is.null(layout)) 
+    layout <- matrix(1:length(rt), nrow = floor(sqrt(length(rt)))) else stopifnot(length(unique(c(layout))) == length(rt))
+  if (is.null(nms)) 
+    nms <- names(rt) else stopifnot(length(nms) == length(rt))
+  
+  histArgs <- list(...)
+  histDefArgs <- list(xlab = "Reaction Time", las = 1, bty = "n")
+  idx <- unlist(lapply(histArgs[names(histDefArgs)], is.null), use.names = FALSE)
+  histArgs[names(histDefArgs)[idx]] <- histDefArgs[idx]
+  
   if (!ggplot) {
     layout(layout)
     for (i in 1:length(rt)) {
-      histArgs$x = rt[[i]]
-      histArgs$main = nms[i]
+      histArgs$x <- rt[[i]]
+      histArgs$main <- nms[i]
       do.call(graphics::hist, histArgs)
     }
     layout(1)
     return(invisible())
   } else {
-    plotList = vector('list', length(rt))
+    plotList <- vector("list", length(rt))
     for (i in 1:length(rt)) {
-      histDat = data.frame(rt = rt[[i]])
-      plotList[[i]] = ggplot2::ggplot(data = histDat, ggplot2::aes_string(x = 'rt')) +
-          ggplot2::geom_histogram(ggplot2::aes_string(y = '..density..'), breaks = histArgs$breaks) +
-          ggplot2::scale_x_continuous(name = histArgs$xlab, limits = histArgs$xlim) +
-          ggplot2::scale_y_continuous(name = histArgs$ylab) +
-          ggplot2::ggtitle(nms[i])
+      histDat <- data.frame(rt = rt[[i]])
+      plotList[[i]] <- ggplot2::ggplot(data = histDat, ggplot2::aes_string(x = "rt")) + 
+        ggplot2::geom_histogram(ggplot2::aes_string(y = "..density.."), 
+          breaks = histArgs$breaks) + ggplot2::scale_x_continuous(name = histArgs$xlab, 
+        limits = histArgs$xlim) + ggplot2::scale_y_continuous(name = histArgs$ylab) + 
+        ggplot2::ggtitle(nms[i])
     }
     return(plotList)
   }
