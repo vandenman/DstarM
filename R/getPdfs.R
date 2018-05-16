@@ -16,38 +16,38 @@
 #' @return A matrix containing model pdfs.
 
 #' @export
-getPdfs = function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density, args.density = list()) {
-
+getPdfs <- function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density, 
+  args.density = list()) {
+  
   if (!missing(resDecision)) {
-    if (!is.DstarM(resDecision) || names(resDecision)[1L] != "Bestvals") {
+    if (!is.DstarM.fitD(resDecision)) {
       stop("Argument res must be output of estDstarM()")
     } else {
-      fun.density = resDecision$fun.density
-      args.density = resDecision$args.density
+      fun.density <- resDecision$fun.density
+      args.density <- resDecision$args.density
       if (missing(pars)) {
-        pars = resDecision$Bestvals[c(resDecision$restr.mat)]
-        dim(pars) = dim(resDecision$restr.mat)
+        pars <- resDecision$Bestvals[c(resDecision$restr.mat)]
+        dim(pars) <- dim(resDecision$restr.mat)
         if (DstarM != resDecision$DstarM) {
           warning("Argument DstarM does not match the amount ")
         }
       }
     }
   }
-
-
-  ncondition = NCOL(pars)
-  mm = matrix(0, ncondition * 2, ncondition)
-  mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1L, each = 2)] = 1
-
-  pars.list = unlist(apply(pars, 2, list), recursive = FALSE)
-  m = getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
-                      oscPdf = FALSE, fun.density = fun.density,
-                      args.density = list())
-
+  
+  
+  ncondition <- NCOL(pars)
+  mm <- matrix(0, ncondition * 2, ncondition)
+  mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1L, each = 2)] <- 1
+  
+  pars.list <- unlist(apply(pars, 2, list), recursive = FALSE)
+  m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm, 
+    oscPdf = FALSE, fun.density = fun.density, args.density = list())
+  
   if (!is.null(colnames(pars))) {
-    colnames(m) = colnames(pars)
+    colnames(m) <- colnames(pars)
   }
-
+  
   return(m)
-
+  
 }

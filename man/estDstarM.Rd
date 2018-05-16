@@ -4,14 +4,18 @@
 \alias{estDstarM}
 \title{Do a D*M analysis}
 \usage{
-estDstarM(data, tt, restr = NULL, fixed = list(), lower, upper,
-  Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
+estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
+  upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
   splits = rep.int(0, (ncondition)), forceRestriction = TRUE, mg = NULL,
   h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = TRUE)
+  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1,
+  useRcpp = FALSE)
 }
 \arguments{
-\item{data}{A dataframe with: a column named \code{rt} containing response times in ms,
+\item{formula}{A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}}
+
+\item{data}{A dataframe for looking up data specified in formula.
+For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
 a column named \code{response} containing at most 2 response options, and an
 optional column named \code{condition} containing a numeric index as to which conditions
 observations belong.}
@@ -55,7 +59,8 @@ of those values have an identical nondecision distribution.}
 
 \item{forceRestriction}{if TRUE the variance restriction is enforced.}
 
-\item{mg}{Supply a data density, usefull if a uniform kernel approximation does not suffice.}
+\item{mg}{Supply a data density, usefull if a uniform kernel approximation does not suffice.
+Take care that densities of response categories within conditions are degenerate and therefore integrate to the proportion a category was observed (and not to 1).}
 
 \item{h}{bandwidth of a uniform kernel used to generate data based densities.}
 
@@ -71,14 +76,37 @@ Defaults to a chi-square distance.}
 
 \item{args.dist}{A named list containing additional arguments to be send to fun.dist.}
 
-\item{verbose}{Logical, should intermediate output be printed? Defaults to TRUE.
-Estimation will speed up if set to FALSE. If set to TRUE, \code{Optim$trace} will be
+\item{verbose}{Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
+Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
 printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
-\code{Optim}.}
+\code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).}
+
+\item{useRcpp}{Logical, setting this to true will make the objective function use an Rcpp implementation
+of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.}
 }
 \value{
-Returns an object of class \code{'D*M'}, which is a named list.
+Returns a list of class \code{DstarM.fitD} that contains:
+\item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
+\item{fixed}{Numeric vector. Contains the best parameter estimates.}
+\item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}
+\item{Debug}{List. contains the number of DEoptim iterations, the number of function evaluation of the objective function, and the maximum number of iterations.}
+\item{note}{String. A possible note that is used for summary purposes}
+\item{tt}{Numeric vector. Contains the time grid used.}
+\item{g.hat}{Numeric matrix. Named columns represent the (possibly smoothed) densities of the data distribution of each condition-response pair.}
+\item{modelDist}{Numeric matrix. Named columns represent the densities of the model evaluated at grid \code{tt} with parameters \code{Bestvals}.}
+\item{ncondition}{Numeric scalar. The number of conditions}
+\item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
+\item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
+\item{restr.mat}{Numeric matrix. Contains the restrictions used.}
+\item{splits}{Numeric vector. Equal to the input argument with the same name.}
+\item{n}{Numeric scalar. The total number of observations.}
+\item{DstarM}{Logical. Equal to the input argument with the same name.}
+\item{fun.density}{Function. Equal to the input argument with the same name.}
+\item{fun.dist}{Function. Equal to the input argument with the same name.}
+\item{h}{Scalar. Equal to the input argument with the same name.}
+\item{args.density}{Named list. Equal to the input argument with the same name.}
+\item{args.dist}{Named list. Equal to the input argument with the same name.}
 }
 \description{
 Do a D*M analysis
@@ -96,6 +124,10 @@ response options is higher, the drift speed will most likely be negative.
 Any additional arguments can be passed to \code{fun.density} via the argument \code{args.density}.
 If one intends to use a custom density function it is recommended to test the function first with \code{\link{testFun}}.
 When specifying a custom density function it is probably also necessary to change the lower and upper bounds of the parameter space.
+
+For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
+See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
+This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
 }
 \examples{
 

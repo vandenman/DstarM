@@ -58,7 +58,7 @@ Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
     pars[3L] = pars[3L] * pars[1L] # rescale z
     dist = abs(rtdists::ddiffusion(rt = t, response = boundary,
                                    a = pars[1L], v = pars[2L], t0 = 0, z = pars[3],
-                                   d = 0L, sz = sz, sv = pars[5L], st0 = 0,
+                                   d = 0, sz = sz, sv = pars[5L], st0 = 0,
                                    precision = prec))
   } else {
     sz = pars[5L] * 2 * pars[1L] * min(c(pars[4L], 1 - pars[4L])) # rescale sz
@@ -68,7 +68,8 @@ Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
                                    a = pars[1L], v = pars[2L], t0 = 0, z = pars[4L], # pars[3]
                                    d = 0, sz = sz, sv = pars[6L], st0 = 0, # st0
                                    precision = prec))
-    ND = rev(stats::dunif(t, pars[3L] - .5*st0, pars[3L] + .5*st0 + ((t[2L] - t[1L]) / 100) ))
+    by = t[2L] - t[1L]
+    ND = rev(stats::dunif(t, pars[3L] - .5*st0, pars[3L] + .5*st0 + (by / 100) ))
     if (any(ND != 0)) {
       dist = zapsmall(customConvolveO(abs(dist), ND)[seq_along(t)], 13)
     }

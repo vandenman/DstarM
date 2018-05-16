@@ -49,27 +49,29 @@
 
 #' @export
 # calc chisq dist via simpsons rule; scalar | simpson
-chisq = function(tt, a, b) {
+chisq <- function(tt, a, b) {
   # Calc chi-square dist
-  vals = (a - b)^2 / (a + b + 1e-10) # + small float to avoid divide by 0
+  vals <- (a - b)^2/(a + b + 1e-10)  # + small float to avoid divide by 0
   return(simpson(tt, vals))
 }
 
 #' @rdname chisq
 #' @export
-# Bhattacharyya  distance; scalar | simpson
-battacharyya = function(tt, a, b) {
-  a[a < 0L] = 0L; b[b < 0L] = 0L
+# Bhattacharyya distance; scalar | simpson
+battacharyya <- function(tt, a, b) {
+  a[a < 0L] <- 0L
+  b[b < 0L] <- 0L
   return(abs(log(simpson(tt, sqrt(a * b)))))
 }
 
 #' @rdname chisq
 #' @export
 # Hellinger distance; scalar | simpson
-hellinger = function(tt, a, b) {
-  #  browser()
-  a[a < 0L] = 0L; b[b < 0L] = 0L
-  #  return(abs(1 - simpson(tt, sqrt(a * b))))
-  return(.5 * simpson(tt, (sqrt(a) - sqrt(b))^2))
+hellinger <- function(tt, a, b) {
+  # browser()
+  a[a < 0L] <- 0L
+  b[b < 0L] <- 0L
+  # return(abs(1 - simpson(tt, sqrt(a * b))))
+  return(0.5 * simpson(tt, (sqrt(a) - sqrt(b))^2))
 }
 

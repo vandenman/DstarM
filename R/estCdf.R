@@ -26,21 +26,16 @@
 #'        col = 1:3, lty = c(1, NA, NA), pch = c(NA, 1, 1), bty = 'n')
 #'
 #' @export
-estCdf = function(x) {
-  if (is.DstarM(x)) {
-    if (names(x)[1] != 'obsNorm') {
-      stop('Please supply output from estObserved.',
-           call. = FALSE)
-    } else {
-      x = x$obsNorm
-    }
+estCdf <- function(x) {
+  if (is.DstarM.fitObs(x)) {
+    x <- x$obsNorm
   }
   if (is.matrix(x)) {
-    out = apply(x, 2, estCdf)
-    colnames(out) = colnames(x)
+    out <- apply(x, 2, estCdf)
+    colnames(out) <- colnames(x)
     return(out)
   } else {
-    return(cumsum(x) / sum(x))
+    return(cumsum(x)/sum(x))
   }
 }
 

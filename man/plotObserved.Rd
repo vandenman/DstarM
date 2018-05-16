@@ -2,10 +2,11 @@
 % Please edit documentation in R/plotObserved.R
 \name{plotObserved}
 \alias{plotObserved}
-\title{Plot histogram of data with overlayed model predicted density.}
+\title{Plot quantiles of data against model implied quantiles.}
 \usage{
-plotObserved(resObserved, data, what = "cr", layout = NULL, main = NULL,
-  linesArgs = list(), ggplot = FALSE, prob = NULL, probType = 3, ...)
+plotObserved(resObserved, data, what = c("cr", "c", "r"), layout = NULL,
+  main = NULL, linesArgs = list(), ggplot = FALSE, prob = seq(0, 1,
+  0.01), probType = 3, ...)
 }
 \arguments{
 \item{resObserved}{output of \code{\link{estObserved}}.}
@@ -21,13 +22,13 @@ plotObserved(resObserved, data, what = "cr", layout = NULL, main = NULL,
 
 \item{linesArgs}{A list containing named arguments to be passed to \code{\link{lines}}.}
 
-\item{ggplot}{Logical, should ggplot2 be used instead of base R graphics? If set to TRUE,
-some arguments from \code{linesArgs} and \code{...} will be ignored (but can be added
-to plots manually).}
+\item{ggplot}{Deprecated and ignored.}
 
 \item{prob}{Should a qqplot of observed vs model implied quantiles be plotted?
-If NULL (the default) then a histogram overlayed with model implied densities will be plotted.
-Otherwise, this argument should be a vector of probabilities to be passed to \code{\link{estQdf}}.}
+By default, it is \code{seq(0, 1, .01)}, the probabilities between 0 and 1 to compare the
+model implied quantiles to the observed quantiles. If this argument is NULL,
+then a histogram overlayed with model implied densities will be plotted.
+Internally, \code{\link{estQdf}} is used for generating quantiles.}
 
 \item{probType}{A numeric value defining several plotting options. 0 does nothing, 1
 removes the 0\% quantile, 2 removes the 100\% quantile and 3 removes both the 0\% and 100\% quantile.}

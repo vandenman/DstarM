@@ -1,6 +1,11 @@
 .Rproj.user
 .Rhistory
 .RData
+.Rbuildignore
 .Ruserdata
 *.Rhistory
 *.RData
+*.pper
+*.dll
+*.o
+*.so

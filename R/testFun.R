@@ -19,26 +19,30 @@
 #' args = args)
 #' # TRUE
 
-testFun = function(fun.density, lower, upper, args = list()) {
+testFun <- function(fun.density, lower, upper, args = list()) {
   # veranderen naar iets met getPdf?
-  test = vector('list', 4)
-  args$pars = lower
-  args$boundary = 'lower'
-  test[[1]] = try(do.call(fun.density, args), silent = TRUE)
-  args$boundary = 'upper'
-  test[[2]] =  try(do.call(fun.density, args), silent = TRUE)
-  args$pars = upper
-  test[[3]] = try(do.call(fun.density, args), silent = TRUE)
-  args$boundary = 'lower'
-  test[[4]] =  try(do.call(fun.density, args), silent = TRUE)
+  test <- vector("list", 4)
+  args$pars <- lower
+  args$boundary <- "lower"
+  test[[1]] <- try(do.call(fun.density, args), silent = TRUE)
+  args$boundary <- "upper"
+  test[[2]] <- try(do.call(fun.density, args), silent = TRUE)
+  args$pars <- upper
+  test[[3]] <- try(do.call(fun.density, args), silent = TRUE)
+  args$boundary <- "lower"
+  test[[4]] <- try(do.call(fun.density, args), silent = TRUE)
   if (!all(unlist(lapply(test, is.numeric)))) {
-    stop('testing fun.density with lower and upper bounds resulted in non-numeric output.', call. = FALSE)
+    stop("testing fun.density with lower and upper bounds resulted in non-numeric output.", 
+      call. = FALSE)
   } else if (any(unlist(lapply(test, anyNA)))) {
-    stop('testing fun.density with lower and upper bounds resulted in NaN output.', call. = FALSE)
+    stop("testing fun.density with lower and upper bounds resulted in NaN output.", 
+      call. = FALSE)
   } else if (any(lengths(test) != length(args$t))) {
-    stop('testing fun.density with lower and upper bounds resulted in output of wrong length.', call. = FALSE)
+    stop("testing fun.density with lower and upper bounds resulted in output of wrong length.", 
+      call. = FALSE)
   } else if (any(unlist(lapply(test, function(x) any(x < 0))))) {
-    stop('testing fun.density with lower and upper bounds resulted in negative values.', call. = FALSE)
+    stop("testing fun.density with lower and upper bounds resulted in negative values.", 
+      call. = FALSE)
   } else {
     return(TRUE)
   }
