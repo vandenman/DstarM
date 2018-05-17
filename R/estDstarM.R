@@ -1,6 +1,7 @@
 #' Do a D*M analysis
 #'
-#' @param formula A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}
+#' @param formula A formula object of the form:
+#' \code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.
 #' @param data A dataframe for looking up data specified in formula.
 #' For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
 #' a column named \code{response} containing at most 2 response options, and an
@@ -47,7 +48,7 @@
 #' @param verbose Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
 #' Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 #' forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
-#' printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
+#' printing of \code{DEoptim}, set \code{verbose} to 0 and specify \code{Optim$trace}.
 #' \code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).
 #' @param useRcpp Logical, setting this to true will make the objective function use an Rcpp implementation
 #' of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.
@@ -68,6 +69,9 @@
 #' For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
 #' See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
 #' This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
+#'
+#' When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.
+#' Convergence can (and is usually) reached before then.
 #'
 #' @return Returns a list of class \code{DstarM.fitD} that contains:
 #' \item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
@@ -118,42 +122,42 @@
 #' @useDynLib DstarM, .registration = TRUE
 
 #' @export
-estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(), 
-    lower, upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE, splits = rep(0L, 
-        (ncondition)), forceRestriction = TRUE, mg = NULL, h = 1, pars, fun.density = Voss.density, 
-    args.density = list(), fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L, 
+estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
+    lower, upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE, splits = rep(0L,
+        (ncondition)), forceRestriction = TRUE, mg = NULL, h = 1, pars, fun.density = Voss.density,
+    args.density = list(), fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
     useRcpp = TRUE) {
-    
+
     # Error handling
     verbose <- as.integer(verbose)
-    if (!is.numeric(verbose)) 
+    if (!is.numeric(verbose))
         stop("verbose must be numeric")
     if (verbose < 0L) {
         verbose <- 0L
     } else if (verbose > 2L) {
         verbose <- 2L
     }
-    
+
     Optim <- errCheckOptim(Optim)
     by <- unique(zapsmall(diff(tt)))
-    
-    data <- getData(formula, data)
+
+    data <- getData(formula, data, verbose = verbose)
     rtime <- data[["rtime"]]
     response <- data[["response"]]
     condition <- data[["condition"]]
     hasConditions <- data[["hasConditions"]]
     data <- data[["data"]]
-    
-    note <- errCheckData(data = data, tt = tt, h = h, by = by, rtime = rtime, 
+
+    note <- errCheckData(data = data, tt = tt, h = h, by = by, rtime = rtime,
         response = response, condition = condition)
     ncondition <- length(unique(data[[condition]]))  # get number of conditions
-    
+
     # mm is a helper matrix. matrix multiplication with this matrix sums
     # every 2 columns often pdfs needs to be summed over conditions, i.e.
     # when normalizing them or calculating their variance.
     mm <- matrix(0, ncondition * 2, ncondition)
     mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1, each = 2)] <- 1
-    
+
     # get defaults
     if (missing(lower) | missing(upper)) {
         if (DstarM) {
@@ -174,37 +178,37 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         }
     }
     npars <- length(lower)
-    
+
     if (is.null(restr)) {
         restrMat <- matrix(1:(npars * ncondition), npars, ncondition)
     } else {
         # convert numbers to 1:length(unique)
-        restrMat <- apply(as.matrix(c(restr)), 1, function(x, eq) which(x == 
+        restrMat <- apply(as.matrix(c(restr)), 1, function(x, eq) which(x ==
             eq), unique(c(restr)))
         dim(restrMat) <- dim(as.matrix(restr))
-        if (dim(restrMat)[2L] != ncondition) 
-            stop(sprintf("Number of columns of restr (%s) must match number of conditions (%s).", 
+        if (dim(restrMat)[2L] != ncondition)
+            stop(sprintf("Number of columns of restr (%s) must match number of conditions (%s).",
                 dim(restrMat)[2L], ncondition), call. = FALSE)
-        if (dim(restrMat)[1L] != npars) 
-            stop(sprintf("Number of rows of restr must match number of parameters", 
+        if (dim(restrMat)[1L] != npars)
+            stop(sprintf("Number of rows of restr must match number of parameters",
                 dim(restrMat)[1L], npars), call. = FALSE)
         uniqR <- unique(c(restrMat))
         for (i in seq_along(uniqR)) {
             idxR <- which(restrMat == uniqR[i], arr.ind = TRUE)
             if (!all(duplicated(idxR[, 1])[-1])) {
                 idx <- !duplicated(idxR[, 1])
-                warning(sprintf("Different parameters have been restricted to the same value (see restr %s). This is unorthodox but the analysis will continue.", 
-                  paste0("[", idxR[idx, 1], ", ", idxR[idx, 2], "]", collapse = "; ")), 
+                warning(sprintf("Different parameters have been restricted to the same value (see restr %s). This is unorthodox but the analysis will continue.",
+                  paste0("[", idxR[idx, 1], ", ", idxR[idx, 2], "]", collapse = "; ")),
                   immediate. = TRUE, call. = FALSE)
             }
         }
     }
     # rcpp checks
-    if (useRcpp && !(identical(fun.density, Voss.density) || identical(fun.dist, 
+    if (useRcpp && !(identical(fun.density, Voss.density) || identical(fun.dist,
         chisq))) {
         stop("useRcpp only implemented for fun.density = Voss.density and fun.dist = chisq.")
     }
-    
+
     # Indexing based on restrictions on nondecision distribution and number
     # of conditions
     group <- groups(nconditie = ncondition, splits = splits, restriction = FALSE)
@@ -215,7 +219,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     }
     rt <- split(data[[rtime]], list(data[[response]], data[[condition]]))
     n <- (ql <- lengths(rt)) %*% mm2
-    
+
     if (is.null(mg)) {
         # obtain data density
         g <- getGhat(rt = rt, tt, ncondition, mm, by)
@@ -233,7 +237,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     g2 <- g2 %*% (diag(dim(g2)[2L])/apply(g2, 2, simpson, x = tt))
     moments.data <- matrix(0, 5, dim(g2)[2L])
     for (i in 1:dim(g2)[2L]) {
-        moments.data[, i] <- unlist(lapply(0:4, nth.cmomentS, x = tt, fx = g2[, 
+        moments.data[, i] <- unlist(lapply(0:4, nth.cmomentS, x = tt, fx = g2[,
             i]))
     }
     # convolve data density with uniform kernel - only do this when no own
@@ -247,20 +251,20 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         }
         g[g < 0] <- 0
     }
-    g <- g %*% (diag(dim(g)[2L])/rep(apply(g %*% mm, 2, simpson, x = tt), 
+    g <- g %*% (diag(dim(g)[2L])/rep(apply(g %*% mm, 2, simpson, x = tt),
         each = 2))
     colnames(g) <- names(rt)  # name columns of g after conditions for clarity
     mu.data <- moments.data[1, ]
     var.data <- moments.data[3, ]
     # apply SE - gives the variance restriction some lenience
     var.data <- var.data * (1 + SE * sqrt(2/(n - 1)))  # TODO: include ref
-    
+
     # ii and jj are vectors that contain all combinations of p and p' to
     # compare in the objective function
     iijj <- getCombinations(group)
     ii <- iijj[["ii"]]
     jj <- iijj[["jj"]]
-    
+
     # Impose parameter constraints restrictions between conditions are
     # imposed via a numerical matrix fixing of parameters is done by looking
     # up the names of the vectors.  if both lower and upper missing test if
@@ -274,18 +278,18 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     upper <- rep(upper, ncondition)
     names(lower) <- paste0(parnames, rep(seq_len(ncondition), each = npars))
     names(upper) <- names(lower)
-    
+
     # search condition restrictions and implement these in the lower/ upper
     # vector
     search <- unique(c(restrMat))
     ind <- rep.int(0L, (length(search)))
     for (i in search) {
-        ind[i] <- (which(restrMat == i, arr.ind = TRUE)[1, ] + c(0, -1)) %*% 
+        ind[i] <- (which(restrMat == i, arr.ind = TRUE)[1, ] + c(0, -1)) %*%
             c(1, npars)
     }
     lower <- lower[ind]
     upper <- upper[ind]
-    
+
     # get restrictions
     fixed <- getFixed(fixed, names(lower), useRcpp)
     indFixed <- fixed$indFixed
@@ -293,35 +297,35 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         lower <- lower[-indFixed]
         upper <- upper[-indFixed]
     }
-    
+
     # keep only arguments in args.density that appear in fun.density
     args.density <- args.density[names(args.density) %in% names(formals(fun.density))]
-    
+
     # collect arguments so far in a list
     if (useRcpp) {
-        argsList <- list(tt = tt, restr = restrMat - 1, ii = ii - 1L, jj = jj - 
-            1L, mm = mm, mm2 = mm2, g = g, varData = var.data, ql = ql, DstarM = DstarM, 
+        argsList <- list(tt = tt, restr = restrMat - 1, ii = ii - 1L, jj = jj -
+            1L, mm = mm, mm2 = mm2, g = g, varData = var.data, ql = ql, DstarM = DstarM,
             oscPdf = oscPdf, forceRestriction = forceRestriction, precision = 3)
     } else {
         # make every columnn of restrMat temporarily a list
-        restrList <- unlist(apply(restrMat, 2, list), recursive = FALSE, 
+        restrList <- unlist(apply(restrMat, 2, list), recursive = FALSE,
             use.names = FALSE)
-        argsList <- list(tt = tt, g = g, ql = ql, restrMat = restrList, DstarM = DstarM, 
-            oscPdf = oscPdf, ii = ii, jj = jj, mm = mm, mm2 = mm2, fun.density = fun.density, 
-            args.density = args.density, fun.dist = fun.dist, args.dist = args.dist, 
-            var.data = var.data, forceRestriction = forceRestriction, by = by, 
+        argsList <- list(tt = tt, g = g, ql = ql, restrMat = restrList, DstarM = DstarM,
+            oscPdf = oscPdf, ii = ii, jj = jj, mm = mm, mm2 = mm2, fun.density = fun.density,
+            args.density = args.density, fun.dist = fun.dist, args.dist = args.dist,
+            var.data = var.data, forceRestriction = forceRestriction, by = by,
             parnames = names(lower))
     }
     if (missing(pars)) {
         # change to is is.null(pars)?
-        
+
         argsList$fixed <- fixed
-        
+
         # do differential evolution
-        nrep <- ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) - 
+        nrep <- ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) -
             1)]))/Optim$steptol[length(Optim$steptol)])
         if (nrep <= 1L) {
-            nrep <- which.max(cumsum(Optim$steptol) * (cumsum(Optim$steptol) <= 
+            nrep <- which.max(cumsum(Optim$steptol) * (cumsum(Optim$steptol) <=
                 Optim$steptol))
         } else if (nrep > 1L) {
             last <- length(Optim$steptol)
@@ -331,95 +335,95 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
             Optim$steptol <- Optim$steptol2
             nrep <- length(Optim$steptol)
         }
-        
+
         oldval <- Inf
         nfeval <- 0  # number of function evaluations
         # add arguments for DEoptim to the list
         if (useRcpp) {
-            
+
             argsList$fn <- totalobjectiveC
             argsList$fixed <- fixed$mat
             argsList$anyFixed <- fixed$anyFixed
-            
+
             # imposeFixations(argsList$fixed, lower, names(lower))
             # imposeFixationsC(pars = lower, fixed = qq) browser() if (length(fixed)
             # == 0) { argsList$anyFixed = FALSE argsList$fixed = matrix(1, 1, 1) #
             # c++ does not accept NULL } else { argsList$anyFixed = TRUE
             # argsList$fixed = fixed2Rcpp(argsList$fixed, lower) }
-            
+
         } else {
             argsList$all <- FALSE
             argsList$fn <- total.objective
-            
+
         }
         argsList$lower <- lower
         argsList$upper <- upper
-        
+
         argsList$control <- DEoptim::DEoptim.control()
-        sharedNames <- names(argsList$control)[(names(argsList$control) %in% 
+        sharedNames <- names(argsList$control)[(names(argsList$control) %in%
             names(Optim))]
         argsList$control[sharedNames] <- Optim[sharedNames]
-        
+
         if (Optim$parallelType == 1) {
             argsList$control$packages <- c(list("rtdists", "DstarM"), Optim$packages)
             argsList$control$parVar <- Optim$parVar
         } else if (Optim$parallelType == 2) {
-            argsList$control$foreachArgs <- c(list("getPdf", "getVar", "oscCheck", 
-                "simpson", "nth.cmomentS", "customDdiffusion", "customApprox", 
+            argsList$control$foreachArgs <- c(list("getPdf", "getVar", "oscCheck",
+                "simpson", "nth.cmomentS", "customDdiffusion", "customApprox",
                 "customConvolveO"), Optim$foreachArgs)
         }
         if (verbose > 0) {
-            cat(sprintf("Starting %s analysis...\n", ifelse(DstarM, "D*M", 
+            cat(sprintf("Starting %s analysis...\n", ifelse(DstarM, "D*M",
                 "Traditional")))
             argsList$control$itermax <- Optim$steptol[1]
             argsList$control$storepopfrom <- Optim$steptol[1] - 1
             argsList$control$trace <- 0
-            tempOut <- list(Bestvals = rep(NA, length(unique(unlist(restrMat)))), 
+            tempOut <- list(Bestvals = rep(NA, length(unique(unlist(restrMat)))),
                 restrMat = restrMat)
             class(tempOut) <- "DstarM"
             prevSize <- 0  # to avoid deleting notes/ Starting...
-            
+
             # do DEoptim for steptol iterations with custom printing and custom
             # convergence checks
             before <- Sys.time()
             for (i in 1:nrep) {
-                
+
                 out <- do.call(DEoptim::DEoptim, argsList)
                 argsList$control$initialpop <- out$member$pop  # update population value
                 argsList$control$itermax <- Optim$steptol[i + 1] + 1  # update population value
                 argsList$control$storepopfrom <- Optim$steptol[i + 1]
                 nfeval <- nfeval + out$optim$nfeval
                 newval <- out$optim$bestval
-                
+
                 improvement <- oldval - newval
-                
+
                 # print progress
                 if (verbose == 1) {
-                  
+
                   diff <- Sys.time() - before
                   currentIter <- sum(Optim$steptol[1:i])
                   totIter <- sum(Optim$steptol)
                   # based on dplyr::progress_estimated
                   avg <- diff/currentIter
                   eta <- avg * (totIter - currentIter)
-                  
-                  cat(sprintf("Iteration: %d | Rel. improvement: %.3g | ETA: %.2f %s \n", 
-                    currentIter, (oldval - newval)/newval, eta, attr(eta, 
+
+                  cat(sprintf("Iteration: %d | Rel. improvement: %.3g | ETA: %.2f %s \n",
+                    currentIter, (oldval - newval)/newval, eta, attr(eta,
                       "unit")))
-                  
+
                 } else if (verbose == 2) {
-                  tempOut$Bestvals <- imposeFixations(fixed = fixed, pars = out$optim$bestmem, 
+                  tempOut$Bestvals <- imposeFixations(fixed = fixed, pars = out$optim$bestmem,
                     parnames = names(lower))
-                  names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) == 
+                  names(tempOut$Bestvals)[nchar(names(tempOut$Bestvals)) ==
                     0] <- fixed$fixedMat[1, ]
-                  
-                  if (i > 1) 
+
+                  if (i > 1)
                     cat(sprintf("\n%s\n", paste(rep("=", nCharRep), collapse = "")))
-                  msg1 <- utils::capture.output(cat(sprintf("Total iterations done: %s \nImprovement over last %s iterations: %10g \nObjective function value: %10g \nCurrent parameter estimates:\n", 
-                    sum(Optim$steptol[1:i]), Optim$steptol[i], improvement, 
+                  msg1 <- utils::capture.output(cat(sprintf("Total iterations done: %s \nImprovement over last %s iterations: %10g \nObjective function value: %10g \nCurrent parameter estimates:\n",
+                    sum(Optim$steptol[1:i]), Optim$steptol[i], improvement,
                     newval)), print(tempOut))
                   cat(paste0(msg1, collapse = "\n"))
-                  if (i == 1) 
+                  if (i == 1)
                     nCharRep <- max(nchar(msg1))
                   prevSize <- sum(nchar(msg1)) + length(msg1) - 1
                 }
@@ -431,74 +435,74 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
                 }
             }
             niter <- sum(Optim$steptol[1:i])
-            
+
         } else {
             # do DEoptim with build in convergence
-            
+
             argsList$control$itermax <- Optim$itermax
             argsList$control$steptol <- Optim$steptol[1]
             argsList$control$storepopfrom <- Optim$steptol[1] + 1
             argsList$control$reltol <- Optim$reltol
-            
+
             out <- do.call(DEoptim::DEoptim, argsList)
             niter <- out$optim$iter
             nfeval <- out$optim$nfeval
-            
+
         }
-        
+
         # gather relevant output
-        Bestvals <- imposeFixations(fixed = fixed, pars = out$optim$bestmem, 
+        Bestvals <- imposeFixations(fixed = fixed, pars = out$optim$bestmem,
             parnames = names(lower))
         if (!is.null(fixed$fixedNames)) {
             names(Bestvals)[names(Bestvals) == ""] <- fixed$fixedNames
         }
         # calculate model densities at parameter estimates
         pars <- Bestvals[c(restrMat)]  # extract all parameters
-        
-        
-        
-        out <- list(Bestvals = Bestvals, fixed = fixed, GlobalOptimizer = out, 
-            Debug = list(niter = niter, nfeval = nfeval, itermax = Optim$itermax), 
+
+
+
+        out <- list(Bestvals = Bestvals, fixed = fixed, GlobalOptimizer = out,
+            Debug = list(niter = niter, nfeval = nfeval, itermax = Optim$itermax),
             note = note)
-        
+
         if (verbose > 0) {
             cat("\nAnalyses complete!\n")
         }
-        
+
     } else {
         # calculate the objective function for a given set of parameters
-        
+
         argsList$pars <- pars
         argsList$all <- TRUE
-        out <- list(objVals = do.call(total.objective, argsList), pars = pars, 
+        out <- list(objVals = do.call(total.objective, argsList), pars = pars,
             Bestvals = pars)
-        
+
     }
     # calculate model densities at parameter estimates
     dim(pars) <- dim(restrMat)
     pars.list <- unlist(apply(pars, 2, list), recursive = FALSE)
-    m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm, 
+    m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
         oscPdf = FALSE, fun.density = fun.density, args.density = args.density)
     if (!is.null(m)) {
         var.m <- getVar(m, tt, mm2)
         colnames(m) <- names(rt)
     } else {
         var.m <- NULL
-        warning("Solution contained improper pdfs. No decision model distributions have been saved. Perhaps rerun the analysis with a more a narrow time grid.", 
+        warning("Solution contained improper pdfs. No decision model distributions have been saved. Perhaps rerun the analysis with a more a narrow time grid.",
             immediate. = TRUE, call. = FALSE)
     }
-    
+
     conditionNames <- sort(unique(data[[condition]]))
-    
-    out2 <- list(tt = tt, g.hat = g, modelDist = m, ncondition = ncondition, 
-        var.data = var.data, var.m = var.m, restrMat = restrMat, splits = splits, 
-        n = n, DstarM = DstarM, fun.density = fun.density, fun.dist = fun.dist, 
-        h = h, args.density = args.density, args.dist = args.dist, conditionNames = conditionNames, 
+
+    out2 <- list(tt = tt, g.hat = g, modelDist = m, ncondition = ncondition,
+        var.data = var.data, var.m = var.m, restrMat = restrMat, splits = splits,
+        n = n, DstarM = DstarM, fun.density = fun.density, fun.dist = fun.dist,
+        h = h, args.density = args.density, args.dist = args.dist, conditionNames = conditionNames,
         formula = formula)
     out <- c(out, out2)
     class(out) <- "DstarM.fitD"
     return(out)
-    
+
 }
 
 # custom functions: do the same as their names but without error handling
@@ -516,7 +520,7 @@ customApprox <- function(x, fx, n.pts) {
     xout <- seq.int(x[1L], x[length(x)], length.out = n.pts)
     yout <- rep.int(0L, n.pts)
     yout[seq.int(1L, n.pts, 2L)] <- fx
-    yout[seq.int(2L, n.pts, 2L)] <- (fx[2L:length(fx)] - fx[1L:(length(fx) - 
+    yout[seq.int(2L, n.pts, 2L)] <- (fx[2L:length(fx)] - fx[1L:(length(fx) -
         1L)])/2L + fx[-length(fx)]
     return(list(x = xout, y = yout))
 }
@@ -525,7 +529,7 @@ customApprox <- function(x, fx, n.pts) {
 customConvolveO <- function(x, y) {
     n1 <- length(y) - 1L
     y <- c(y, rep.int(0L, (n1)))
-    x <- stats::fft(stats::fft(c(rep.int(0L, (n1)), x)) * Conj(stats::fft(y)), 
+    x <- stats::fft(stats::fft(c(rep.int(0L, (n1)), x)) * Conj(stats::fft(y)),
         inverse = TRUE)
     return(Re(x)/length(y))
 }
@@ -537,17 +541,17 @@ getGhat <- function(rt, tt, ncondition, mm, by) {
     condRespSize <- lengths(rt)
     for (i in which(condRespSize > 0)) {
         # get frequencies for nonzero observations
-        g[, i] <- graphics::hist(rt[[i]], breaks = tt2, include.lowest = TRUE, 
+        g[, i] <- graphics::hist(rt[[i]], breaks = tt2, include.lowest = TRUE,
             plot = FALSE)$counts
     }
     if (any(condRespSize == 0)) {
         # return warnings for zero observations
-        warning(paste0("Zero observations in condition response pair(s) ", 
-            paste0(which(condRespSize == 0), collapse = ", "), ". Analysis will continue but check for errors."), 
+        warning(paste0("Zero observations in condition response pair(s) ",
+            paste0(which(condRespSize == 0), collapse = ", "), ". Analysis will continue but check for errors."),
             immediate. = TRUE, call. = FALSE)
     }
-    
-    g <- g %*% (diag(dim(g)[2L])/rep(apply(g %*% mm, 2, simpson, x = tt), 
+
+    g <- g %*% (diag(dim(g)[2L])/rep(apply(g %*% mm, 2, simpson, x = tt),
         each = 2))
     return(g)
 }
@@ -561,21 +565,21 @@ getKurt <- function(tt, kurtf, m, var.data, var.m, var.r) {
 }
 
 # get all model densities; returns matrix | via simpson
-getPdf <- function(pars.list, tt, DstarM, mm, oscPdf = TRUE, fun.density = Voss.density, 
+getPdf <- function(pars.list, tt, DstarM, mm, oscPdf = TRUE, fun.density = Voss.density,
     args.density = list()) {
     # get pdfs
-    pdf <- Map(fun.density, pars = rep(pars.list, 1, NA, 2), boundary = rep(c("lower", 
-        "upper"), length(pars.list)), MoreArgs = c(args.density, list(t = tt, 
+    pdf <- Map(fun.density, pars = rep(pars.list, 1, NA, 2), boundary = rep(c("lower",
+        "upper"), length(pars.list)), MoreArgs = c(args.density, list(t = tt,
         DstarM = DstarM)))
     pdf <- do.call(cbind, pdf)
     if (oscPdf) {
-        if (!all(apply(pdf, 2, oscCheck))) 
+        if (!all(apply(pdf, 2, oscCheck)))
             {
                 # if not all pdf dists pass the oscCheck
                 return(NULL)
             }  # if they all pass oscCheck
     }
-    
+
     cor <- 1/apply(pdf %*% mm, 2, simpson, x = tt)  # ensure pdfs integrate to 1.
     if (any(is.infinite(cor))) {
         # return NULL if pdfs are gibberish.
@@ -613,7 +617,7 @@ groups <- function(nconditie, splits, restriction = FALSE) {
     ind.temp <- which.max(lengths(ncond.temp))
     # add NA's to fill shorter columns
     for (i in (1:length(ncond.temp))[-ind.temp]) {
-        ncond.temp[[i]] <- c(ncond.temp[[i]], rep(NA, lengths(ncond.temp)[ind.temp] - 
+        ncond.temp[[i]] <- c(ncond.temp[[i]], rep(NA, lengths(ncond.temp)[ind.temp] -
             lengths(ncond.temp)[i]))
     }
     # bind list into a matrix
@@ -622,7 +626,7 @@ groups <- function(nconditie, splits, restriction = FALSE) {
 }
 
 # kurt == nth.cmomentS(..., nth = 4) ? DEPRECATED?
-kurt <- function(x, fx, n = length(x)) nth.cmomentS(x, fx, 4, n)/nth.cmomentS(x, 
+kurt <- function(x, fx, n = length(x)) nth.cmomentS(x, fx, 4, n)/nth.cmomentS(x,
     fx, 2, n)^2
 
 # ceil to base
@@ -632,11 +636,11 @@ mceil <- function(x, base) base * ceiling(x/base)
 mround <- function(x, base) base * round(x/base)
 
 # Estimate n-th moment of a distribution via simpson integration
-nth.momentS <- function(x, fx, nth = 1, n = length(x)) simpson(x, x^nth * 
+nth.momentS <- function(x, fx, nth = 1, n = length(x)) simpson(x, x^nth *
     fx, n)
 
 # Estimate n-th central moment of a distribution via simpson integration
-nth.cmomentS <- function(x, fx, nth = 1, n = length(x)) simpson(x, (x - simpson(x, 
+nth.cmomentS <- function(x, fx, nth = 1, n = length(x)) simpson(x, (x - simpson(x,
     x * fx, n))^nth * fx, n)
 
 # checks if pdf is unimodal. Only works for pdfs, returns TRUE if
@@ -651,7 +655,7 @@ oscCheck <- function(pdf) {
 simpson <- function(x, fx, n = length(x)) {
     ap <- customApprox(x, fx, n.pts = 2L * n - 1L)  # was + 1L
     ind <- 1L:(n - 1L)
-    return(sum(ap$y[2L * ind - 1L] + 4L * ap$y[2L * ind] + ap$y[2L * ind + 
+    return(sum(ap$y[2L * ind - 1L] + 4L * ap$y[2L * ind] + ap$y[2L * ind +
         1L]) * (ap$x[2L] - ap$x[1L])/3L)
 }
 
@@ -660,17 +664,17 @@ simpson <- function(x, fx, n = length(x)) {
 
 # objective function for D*M and Chisq analyses separate these into 2
 # objective functions?
-total.objective <- function(pars, tt, g, ql, restrMat, fixed = NULL, DstarM = TRUE, 
-    all = FALSE, forceRestriction, oscPdf, ii, jj, mm, mm2, fun.density, 
+total.objective <- function(pars, tt, g, ql, restrMat, fixed = NULL, DstarM = TRUE,
+    all = FALSE, forceRestriction, oscPdf, ii, jj, mm, mm2, fun.density,
     args.density, fun.dist, args.dist, var.data, parnames = NULL, by) {
     # impose parameter fixations browser()
     pars <- imposeFixations(fixed = fixed, pars = pars, parnames = parnames)
     # get all unique parameter configurations taking restrictions into
     # account
     pars.list <- lapply(restrMat, function(ind, pars) pars[ind], pars)
-    
+
     # get pdfs and check for oscilations
-    m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm, 
+    m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
         oscPdf = oscPdf, fun.density = fun.density, args.density = args.density)
     # getPdf returns NULL if pdfs generated fail certain sanity checks
     if (is.null(m)) {
@@ -715,34 +719,34 @@ total.objective <- function(pars, tt, g, ql, restrMat, fixed = NULL, DstarM = TR
 
 # imposes fixations from fixed onto pars
 imposeFixations <- function(fixed, pars, parnames) {
-    
+
     if (fixed$anyFixed) {
         for (i in 1:length(fixed$indFixed)) {
             # loop over everything to be looked up
-            
+
             if (fixed$isNumeric[i]) {
                 # numeric replacement
-                
+
                 insert <- as.numeric(fixed$fixedMat[3L, i])
-                
+
             } else {
                 # expression (i.e. z = a/2)
-                
-                replacement <- pars[which(parnames == fixed$fixedMat[3L, 
+
+                replacement <- pars[which(parnames == fixed$fixedMat[3L,
                   i])][1L]
-                insert <- eval(parse(text = gsub(pattern = fixed$fixedMat[3L, 
+                insert <- eval(parse(text = gsub(pattern = fixed$fixedMat[3L,
                   i], replacement = replacement, x = fixed$fixedMat[2L, i])))
-                
+
             }
-            
+
             # execute operation to which parameter was fixed
-            
+
             pars <- append(pars, insert, fixed$indFixed[i] - 1L)  # append fixations to parameter vector
             # names(pars)[fixed$indFixed[i]] = fixed$fixedMat[1L, i] # add names to
             # parameter vector
         }
     }
-    
+
     return(pars)
-    
+
 }

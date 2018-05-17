@@ -23,9 +23,10 @@
 #' then corresponds to parameters for one nondecision distribution and should consist of arguments for
 #' \code{\link{DEoptim.control}}.
 #' Defaults to \code{Optim = list(reltol = 1e-6, itermax = 1e4, steptol = 200, CR = .9, trace = 0)}.
-#' @param verbose Logical, should the function return text output on the current status of the estimation procedure.
-#' As the estimation can take 30+ minutes this defaults to yes.
-#' If FALSE, the analysis will be somewhat faster.
+#' @param verbose Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
+#' Estimation will speed up if set to 0. If nonzero, \code{Optim$trace} will be
+#' forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
+#' printing of \code{DEoptim}, set \code{verbose} to 0 and specify \code{Optim$trace}.
 #' @param dist A matrix where columns represent nondecision distributions.
 #' If this argument is supplied then the objective function will be evaluated in these values.
 #' @param NDindex A vector containing indices of which nondecision distributions to estimate.
@@ -37,6 +38,10 @@
 #' procedure.
 #' @param useRcpp Logical, setting this to true will make use of an Rcpp implementation of the objective function.
 #' This gains speed at the cost of flexibility.
+#'
+#' @details
+#' When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.
+#' Convergence can (and is usually) reached before then.
 #'
 #' @examples
 #' # simulate data with three stimuli of different difficulty.
@@ -69,7 +74,7 @@
 # estimate nondecision distribution
 estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1,
   lower.bound = 0, Optim = list(), verbose = TRUE, dist = NULL, NDindex,
-  max = 100, useRcpp = FALSE) {
+  max = 100, useRcpp = TRUE) {
   # zp - zero padding: adding a number of zeros to avoid numerical
   # artefacts these will be forced to 0 after the estimation procedure
   stopifnot(is.DstarM.fitD(res))
@@ -82,7 +87,7 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
   if (!any(is.null(tt), is.null(data))) {
     # necessary to recalculate time grids
 
-    data <- getData(res[["formula"]], data)
+    data <- getData(res[["formula"]], data, verbose = verbose)
     rtime <- data[["rtime"]]
     response <- data[["response"]]
     condition <- data[["condition"]]
@@ -287,6 +292,7 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
         nfeval <- 0
         argsList$control$itermax <- Optim$steptol[1L]
         argsList$control$storepopfrom <- Optim$steptol[1L] - 1L
+        before <- Sys.time()
         for (i in 1:nrep) {
           out <- do.call(DEoptim::DEoptim, argsList)
           argsList$control$initialpop <- out$member$pop  # update population value
@@ -294,17 +300,28 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
           argsList$control$storepopfrom <- Optim$steptol[i + 1L]
           nfeval <- nfeval + out$optim$nfeval
           newval <- out$optim$bestval
-          if (verbose) {
-          replicate(120, cat("\b"))
-          cat(sprintf("\rEstimating nondecision distribution %s out of %s \nTotal iterations done: %s \nImprovement over last %s iterations: %10g \nObjective function value: %10g",
-            jidx, length(NDindex), sum(Optim$steptol[1:i]), Optim$steptol[i],
-            oldval - newval, newval))
+          if (verbose == 1) {
+
+            diff <- Sys.time() - before
+            currentIter <- sum(Optim$steptol[1:i])
+            totIter <- sum(Optim$steptol)
+            # based on dplyr::progress_estimated
+            avg <- diff/currentIter
+            eta <- avg * (totIter - currentIter)
+
+            cat(sprintf("Iteration: %d | Rel. improvement: %.3g | ETA: %.2f %s \n",
+                        currentIter, (oldval - newval)/newval, eta, attr(eta, "unit")))
+          } else if (verbose == 2) {
+            replicate(120, cat("\b"))
+            cat(sprintf("\rEstimating nondecision distribution %s out of %s \nTotal iterations done: %s \nImprovement over last %s iterations: %10g \nObjective function value: %10g",
+                        jidx, length(NDindex), sum(Optim$steptol[1:i]), Optim$steptol[i],
+                        oldval - newval, newval))
           }
-          if (oldval - newval < Optim$reltol * newval) {
           # check for convergence
-          break
+          if (oldval - newval < Optim$reltol * newval) {
+            break
           } else {
-          oldval <- newval
+            oldval <- newval
           }
         }
         out$nfeval <- nfeval
