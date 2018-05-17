@@ -4,6 +4,7 @@
 \alias{estDstarM}
 \title{Do a D*M analysis}
 \usage{
+<<<<<<< HEAD
 estDstarM(
   formula = NULL,
   data,
@@ -34,6 +35,18 @@ estDstarM(
 \item{formula}{A formula object of the form:
 \code{binary response ~ reaction time} or
 \code{binary response ~ reaction time + condition}. If you have multiple conditions, transform these into a single column called condition.}
+=======
+estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
+  upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
+  splits = rep(0L, (ncondition)), forceRestriction = TRUE, mg = NULL,
+  h = 1, pars, fun.density = Voss.density, args.density = list(),
+  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
+  useRcpp = TRUE)
+}
+\arguments{
+\item{formula}{A formula object of the form:
+\code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.}
+>>>>>>> now uses Rcpp by default
 
 \item{data}{A dataframe for looking up data specified in formula.
 For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
@@ -122,7 +135,7 @@ Returns a list of class \code{DstarM.fitD} that contains:
 \item{ncondition}{Numeric scalar. The number of conditions}
 \item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
 \item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
-\item{restr.mat}{Numeric matrix. Contains the restrictions used.}
+\item{restrMat}{Numeric matrix. Contains the restrictions used.}
 \item{splits}{Numeric vector. Equal to the input argument with the same name.}
 \item{n}{Numeric scalar. The total number of observations.}
 \item{DstarM}{Logical. Equal to the input argument with the same name.}
