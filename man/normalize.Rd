@@ -7,7 +7,8 @@
 normalize(x, tt, props = NULL)
 }
 \arguments{
-\item{x}{a numeric matrix or vector where each column represents a probability density function evaluated at the grid defined in \code{tt}.}
+\item{x}{Probability density function(s) evaluated at grid \code{x}.
+Input should be either a vector or matrix. If input is a matrix, each column represents a single pdf.}
 
 \item{tt}{a numeric grid defined in \code{x}.}
 
@@ -18,15 +19,15 @@ Normalize two pdfs
 }
 \examples{
 tt <- seq(0, 5, .01)
-x1 <- cbind(
-	dexp(tt, .5),
-	dexp(tt, 2)
-)
-x2 <- normalize(x1, tt)
-x3 <- normalize(x1, tt, props = c(.1, .9))
-
-matplot(tt, cbind(x1, x2, x3), type = "l",
-		col = rep(1:3, each = 2), lty = rep(1:2, 3), las = 1, bty = "n")
+# 2 poper densities
+x1 <- cbind(dexp(tt, .5), dexp(tt, 2))
+# still 2 poper densities
+x2 <- normalize(10*x1, tt)
+# 2 densities that integrate to .5
+x3 <- normalize(x1, tt, props = c(.5, .5))
+# plot the results
+matplot(tt, cbind(x1, x2, x3), type = "l", ylab = "density",
+  col = rep(1:3, each = 2), lty = rep(1:2, 3), las = 1, bty = "n")
 legend("topright", legend = rep(paste0("x", 1:3), each = 2),
-	   col = rep(1:3, each = 2), lty = rep(1:2, 3), bty = "n")
+  col = rep(1:3, each = 2), lty = rep(1:2, 3), bty = "n")
 }

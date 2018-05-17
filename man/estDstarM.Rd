@@ -6,13 +6,14 @@
 \usage{
 estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
   upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
-  splits = rep.int(0, (ncondition)), forceRestriction = TRUE, mg = NULL,
+  splits = rep(0L, (ncondition)), forceRestriction = TRUE, mg = NULL,
   h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1,
-  useRcpp = FALSE)
+  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
+  useRcpp = TRUE)
 }
 \arguments{
-\item{formula}{A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}}
+\item{formula}{A formula object of the form:
+\code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.}
 
 \item{data}{A dataframe for looking up data specified in formula.
 For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
@@ -79,7 +80,7 @@ Defaults to a chi-square distance.}
 \item{verbose}{Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
 Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
-printing of \code{DEoptim}, set \code{verbose} to FALSE and specify \code{trace} in
+printing of \code{DEoptim}, set \code{verbose} to 0 and specify \code{Optim$trace}.
 \code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).}
 
 \item{useRcpp}{Logical, setting this to true will make the objective function use an Rcpp implementation
@@ -98,7 +99,7 @@ Returns a list of class \code{DstarM.fitD} that contains:
 \item{ncondition}{Numeric scalar. The number of conditions}
 \item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
 \item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
-\item{restr.mat}{Numeric matrix. Contains the restrictions used.}
+\item{restrMat}{Numeric matrix. Contains the restrictions used.}
 \item{splits}{Numeric vector. Equal to the input argument with the same name.}
 \item{n}{Numeric scalar. The total number of observations.}
 \item{DstarM}{Logical. Equal to the input argument with the same name.}
@@ -128,6 +129,9 @@ When specifying a custom density function it is probably also necessary to chang
 For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
 See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
 This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
+
+When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.
+Convergence can (and is usually) reached before then.
 }
 \examples{
 

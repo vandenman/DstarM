@@ -46,7 +46,7 @@ define restriction matrix
 restr = matrix(1:5, 5, 3)
 restr[2, 2:3] = 6:7 # allow drift rates to differ
 # fix parameters for speed up
-fixed = matrix(c("z1", "a1 / 2", 'sz1', .5, 'sv1', .5), 2, 3)
+fixed = matrix(c('z1', 'a1 / 2', 'sz1', .5, 'sv1', .5), 2, 3)
 resD = estDstarM(data = dat, tt = tt, restr = restr, fixed = fixed,
                  Optim = list(parallelType = 1))
 resN = estND(resD, Optim = list(parallelType = 1))
