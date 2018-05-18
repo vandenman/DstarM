@@ -16,9 +16,9 @@
 #' @return A matrix containing model pdfs.
 
 #' @export
-getPdfs <- function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density, 
+getPdfs <- function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density,
   args.density = list()) {
-  
+
   if (!missing(resDecision)) {
     if (!is.DstarM.fitD(resDecision)) {
       stop("Argument res must be output of estDstarM()")
@@ -29,25 +29,31 @@ getPdfs <- function(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.den
         pars <- resDecision$Bestvals[c(resDecision$restr.mat)]
         dim(pars) <- dim(resDecision$restr.mat)
         if (DstarM != resDecision$DstarM) {
-          warning("Argument DstarM does not match the amount ")
+          warning("Argument DstarM does not match the  ")
         }
       }
+      if (missing(tt))
+        tt <- resDecision$tt
+    }
+  } else {
+    if (missing(tt) || missing(pars)) {
+      stop("Please supply either tt and pars, or resDecision and tt.")
     }
   }
-  
-  
+
+
   ncondition <- NCOL(pars)
   mm <- matrix(0, ncondition * 2, ncondition)
   mm[1:dim(mm)[1L] + dim(mm)[1L] * rep(1:dim(mm)[2L] - 1L, each = 2)] <- 1
-  
+
   pars.list <- unlist(apply(pars, 2, list), recursive = FALSE)
-  m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm, 
+  m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
     oscPdf = FALSE, fun.density = fun.density, args.density = list())
-  
+
   if (!is.null(colnames(pars))) {
     colnames(m) <- colnames(pars)
   }
-  
+
   return(m)
-  
+
 }

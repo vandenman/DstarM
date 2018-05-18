@@ -1,3 +1,5 @@
+// for speed!
+#define ARMA_NO_DEBUG
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -6,10 +8,7 @@ extern "C" {
 	#include "rtdists.h"
 }
 
-// for speed!
-
 using namespace arma;
-// #define ARMA_NO_DEBUG
 
 /* unused alternative for trapz */
 // [[Rcpp::export]]

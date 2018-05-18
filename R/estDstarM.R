@@ -85,7 +85,7 @@
 #' \item{ncondition}{Numeric scalar. The number of conditions}
 #' \item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
 #' \item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
-#' \item{restrMat}{Numeric matrix. Contains the restrictions used.}
+#' \item{restr.mat}{Numeric matrix. Contains the restrictions used.}
 #' \item{splits}{Numeric vector. Equal to the input argument with the same name.}
 #' \item{n}{Numeric scalar. The total number of observations.}
 #' \item{DstarM}{Logical. Equal to the input argument with the same name.}
@@ -180,21 +180,21 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     npars <- length(lower)
 
     if (is.null(restr)) {
-        restrMat <- matrix(1:(npars * ncondition), npars, ncondition)
+        restr.mat <- matrix(1:(npars * ncondition), npars, ncondition)
     } else {
         # convert numbers to 1:length(unique)
-        restrMat <- apply(as.matrix(c(restr)), 1, function(x, eq) which(x ==
+        restr.mat <- apply(as.matrix(c(restr)), 1, function(x, eq) which(x ==
             eq), unique(c(restr)))
-        dim(restrMat) <- dim(as.matrix(restr))
-        if (dim(restrMat)[2L] != ncondition)
+        dim(restr.mat) <- dim(as.matrix(restr))
+        if (dim(restr.mat)[2L] != ncondition)
             stop(sprintf("Number of columns of restr (%s) must match number of conditions (%s).",
-                dim(restrMat)[2L], ncondition), call. = FALSE)
-        if (dim(restrMat)[1L] != npars)
+                dim(restr.mat)[2L], ncondition), call. = FALSE)
+        if (dim(restr.mat)[1L] != npars)
             stop(sprintf("Number of rows of restr must match number of parameters",
-                dim(restrMat)[1L], npars), call. = FALSE)
-        uniqR <- unique(c(restrMat))
+                dim(restr.mat)[1L], npars), call. = FALSE)
+        uniqR <- unique(c(restr.mat))
         for (i in seq_along(uniqR)) {
-            idxR <- which(restrMat == uniqR[i], arr.ind = TRUE)
+            idxR <- which(restr.mat == uniqR[i], arr.ind = TRUE)
             if (!all(duplicated(idxR[, 1])[-1])) {
                 idx <- !duplicated(idxR[, 1])
                 warning(sprintf("Different parameters have been restricted to the same value (see restr %s). This is unorthodox but the analysis will continue.",
@@ -281,10 +281,10 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
 
     # search condition restrictions and implement these in the lower/ upper
     # vector
-    search <- unique(c(restrMat))
+    search <- unique(c(restr.mat))
     ind <- rep.int(0L, (length(search)))
     for (i in search) {
-        ind[i] <- (which(restrMat == i, arr.ind = TRUE)[1, ] + c(0, -1)) %*%
+        ind[i] <- (which(restr.mat == i, arr.ind = TRUE)[1, ] + c(0, -1)) %*%
             c(1, npars)
     }
     lower <- lower[ind]
@@ -303,14 +303,14 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
 
     # collect arguments so far in a list
     if (useRcpp) {
-        argsList <- list(tt = tt, restr = restrMat - 1, ii = ii - 1L, jj = jj -
+        argsList <- list(tt = tt, restr = restr.mat - 1, ii = ii - 1L, jj = jj -
             1L, mm = mm, mm2 = mm2, g = g, varData = var.data, ql = ql, DstarM = DstarM,
             oscPdf = oscPdf, forceRestriction = forceRestriction, precision = 3)
     } else {
-        # make every columnn of restrMat temporarily a list
-        restrList <- unlist(apply(restrMat, 2, list), recursive = FALSE,
+        # make every columnn of restr.mat temporarily a list
+        restrList <- unlist(apply(restr.mat, 2, list), recursive = FALSE,
             use.names = FALSE)
-        argsList <- list(tt = tt, g = g, ql = ql, restrMat = restrList, DstarM = DstarM,
+        argsList <- list(tt = tt, g = g, ql = ql, restr.mat = restrList, DstarM = DstarM,
             oscPdf = oscPdf, ii = ii, jj = jj, mm = mm, mm2 = mm2, fun.density = fun.density,
             args.density = args.density, fun.dist = fun.dist, args.dist = args.dist,
             var.data = var.data, forceRestriction = forceRestriction, by = by,
@@ -378,8 +378,8 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
             argsList$control$itermax <- Optim$steptol[1]
             argsList$control$storepopfrom <- Optim$steptol[1] - 1
             argsList$control$trace <- 0
-            tempOut <- list(Bestvals = rep(NA, length(unique(unlist(restrMat)))),
-                restrMat = restrMat)
+            tempOut <- list(Bestvals = rep(NA, length(unique(unlist(restr.mat)))),
+                restr.mat = restr.mat)
             class(tempOut) <- "DstarM"
             prevSize <- 0  # to avoid deleting notes/ Starting...
 
@@ -457,7 +457,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
             names(Bestvals)[names(Bestvals) == ""] <- fixed$fixedNames
         }
         # calculate model densities at parameter estimates
-        pars <- Bestvals[c(restrMat)]  # extract all parameters
+        pars <- Bestvals[c(restr.mat)]  # extract all parameters
 
 
 
@@ -479,7 +479,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
 
     }
     # calculate model densities at parameter estimates
-    dim(pars) <- dim(restrMat)
+    dim(pars) <- dim(restr.mat)
     pars.list <- unlist(apply(pars, 2, list), recursive = FALSE)
     m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
         oscPdf = FALSE, fun.density = fun.density, args.density = args.density)
@@ -495,7 +495,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     conditionNames <- sort(unique(data[[condition]]))
 
     out2 <- list(tt = tt, g.hat = g, modelDist = m, ncondition = ncondition,
-        var.data = var.data, var.m = var.m, restrMat = restrMat, splits = splits,
+        var.data = var.data, var.m = var.m, restr.mat = restr.mat, splits = splits,
         n = n, DstarM = DstarM, fun.density = fun.density, fun.dist = fun.dist,
         h = h, args.density = args.density, args.dist = args.dist, conditionNames = conditionNames,
         formula = formula)
@@ -664,14 +664,14 @@ simpson <- function(x, fx, n = length(x)) {
 
 # objective function for D*M and Chisq analyses separate these into 2
 # objective functions?
-total.objective <- function(pars, tt, g, ql, restrMat, fixed = NULL, DstarM = TRUE,
+total.objective <- function(pars, tt, g, ql, restr.mat, fixed = NULL, DstarM = TRUE,
     all = FALSE, forceRestriction, oscPdf, ii, jj, mm, mm2, fun.density,
     args.density, fun.dist, args.dist, var.data, parnames = NULL, by) {
     # impose parameter fixations browser()
     pars <- imposeFixations(fixed = fixed, pars = pars, parnames = parnames)
     # get all unique parameter configurations taking restrictions into
     # account
-    pars.list <- lapply(restrMat, function(ind, pars) pars[ind], pars)
+    pars.list <- lapply(restr.mat, function(ind, pars) pars[ind], pars)
 
     # get pdfs and check for oscilations
     m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,

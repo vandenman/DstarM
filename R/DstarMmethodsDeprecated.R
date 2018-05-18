@@ -3,14 +3,14 @@
 # custom plot function for `D*M` output
 plot.DstarM <- function(x, what = "model", ...) {
   dots <- list(...)
-  def.args <- list(bty = "n", xlab = "Reaction Time", las = 1, ylab = "density", 
+  def.args <- list(bty = "n", xlab = "Reaction Time", las = 1, ylab = "density",
     x = x$tt, type = "b", lty = 1, pch = 1)
   if (!is.null(x$byPp)) {
     # output from byParticipant
     idx <- sapply(x, is.DstarM)
-    dots$y <- switch(x$byPp, estDstarM = do.call(cbind, lapply(x[idx], 
-      `[[`, ifelse(what == "model", "modelDist", "g.hat"))), estND = do.call(cbind, 
-      lapply(x[idx], `[[`, "r.hat")), estObserved = do.call(cbind, 
+    dots$y <- switch(x$byPp, estDstarM = do.call(cbind, lapply(x[idx],
+      `[[`, ifelse(what == "model", "modelDist", "g.hat"))), estND = do.call(cbind,
+      lapply(x[idx], `[[`, "r.hat")), estObserved = do.call(cbind,
       lapply(x[idx], `[[`, "obsNorm")))
     dots$x <- x[[idx[1]]]$tt
     if (x$byPp == "estND") {
@@ -37,16 +37,16 @@ plot.DstarM <- function(x, what = "model", ...) {
   dots[names(def.args)[ind]] <- def.args[ind]
   do.call(graphics::matplot, dots)
   if (!is.null(colnames(dots$y))) {
-    
+
     nc <- NCOL(dots$y)
-    if (is.null(dots$lty)) 
+    if (is.null(dots$lty))
       dots$lty <- rep(1, nc)
-    
-    if (is.null(dots$col)) 
+
+    if (is.null(dots$col))
       dots$col <- seq_len(nc)
-    graphics::legend("topright", colnames(dots$y), col = dots$col, lty = dots$lty, 
+    graphics::legend("topright", colnames(dots$y), col = dots$col, lty = dots$lty,
       bty = "n")
-    
+
   }
 }
 
@@ -63,7 +63,7 @@ print.DstarM <- function(x, na.print = "-", ...) {
       out[duplicated(c(x$restr.mat))] <- NA
       dim(out) <- dim(x$restr.mat)
       colnames(out) <- paste("Condition", seq_len(ncol(out)))
-      rownames(out) <- sapply(strsplit(paste0(names(x$Bestvals)), "(?<=[a-zA-Z])(?=[0-9])", 
+      rownames(out) <- sapply(strsplit(paste0(names(x$Bestvals)), "(?<=[a-zA-Z])(?=[0-9])",
         perl = TRUE), `[[`, 1)[1:nrow(out)]
       print(out, na.print = "-")
     } else if (nm == "objVals") {
@@ -84,22 +84,22 @@ print.DstarM <- function(x, na.print = "-", ...) {
         what <- "cr"
       } else {
         if (!(what %in% c("cr", "c", "r"))) {
-          stop(sprintf("Argument what ('%s') must be 'cr', 'c', or 'r'.", 
+          stop(sprintf("Argument what ('%s') must be 'cr', 'c', or 'r'.",
           what))
         }
         dots$what <- NULL
       }
       idx <- switch(what, cr = 1, c = 2, r = 3)
-      msg0 <- switch(what, cr = "Condition Response Pairs", c = "Conditions", 
+      msg0 <- switch(what, cr = "Condition Response Pairs", c = "Conditions",
         r = "Responses")
       dots$x <- cbind(x$props[[idx]], x$counts[[idx]])
-      dimnames(dots$x) <- list(1:dim(dots$x)[1L], switch(what, cr = rep(x$responses, 
+      dimnames(dots$x) <- list(1:dim(dots$x)[1L], switch(what, cr = rep(x$responses,
         2), c = c("Proportion", "Counts"), r = x$responses))
-      xLen <- nchar(utils::capture.output(print(dots$x[, 1, drop = FALSE], 
+      xLen <- nchar(utils::capture.output(print(dots$x[, 1, drop = FALSE],
         digits = NULL)))[1]
       cat(c(" ", msg0, "\n"))
       if (idx == 1) {
-        cat(c("  Prop", rep("", max(c(0, xLen - 7))), rep("", xLen * 
+        cat(c("  Prop", rep("", max(c(0, xLen - 7))), rep("", xLen *
           (dim(dots$x)[2L]/2 - 1)), "Counts\n"))
       }
       do.call(print, dots)
@@ -113,7 +113,7 @@ print.DstarM <- function(x, na.print = "-", ...) {
     out[, c(2, 4)] <- x[, c(2, 4)]
     out[, 3] <- format(x[, 3], digits = 4)
     out[, 5] <- format(x[, 5], digits = 4)
-    out[, 6] <- ifelse(x[, 5] < 0.001, "***", ifelse(x[, 5] < 0.01, "**", 
+    out[, 6] <- ifelse(x[, 5] < 0.001, "***", ifelse(x[, 5] < 0.01, "**",
       ifelse(x[, 5] < 0.05, "*", "n.s.")))
     rownames(out) <- rownames(x)
     colnames(out) <- c(colnames(x), "signif")
