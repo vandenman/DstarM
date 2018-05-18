@@ -25,7 +25,6 @@ test_that("simulation works", {
 })
 
 test_that("estDstarM useRcpp = FALSE works", {
-
   skip_on_cran()
   fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = 0)
 	expect_equal2(
@@ -207,6 +206,7 @@ test_that("methods work", {
   expect_error(capture.output(plot(fitND)), NA, label = "plot(fitND)")
   expect_error(capture.output(plot(fitObs)), NA, label = "plot(fitObs)")
 
+
 })
 
 test_that("getPdf works", {
@@ -292,13 +292,13 @@ test_that("getPdf works", {
 
 test_that("methods work", {
 
-  # expect_output(print(1))
   expect_error(capture.output(print(fitD)), NA, label = "print(fitD)")
   expect_error(capture.output(print(fitND)), NA, label = "print(fitND)")
-  expect_error(capture.output(print(fitND)), NA, label = "print(fitObs)")
-  grDevices::pdf(NULL)
+  expect_error(capture.output(print(fitObs)), NA, label = "print(fitObs)")
+  expect_error(capture.output(coef(fitD)), NA, label = "coef(fitD)")
+  expect_error(capture.output(summary(fitD)), NA, label = "summary(fitD)")
   expect_error(capture.output(plot(fitD)), NA, label = "plot(fitD)")
   expect_error(capture.output(plot(fitND)), NA, label = "plot(fitND)")
-  expect_error(capture.output(plot(fitND)), NA, label = "plot(fitObs)")
-  dev.off()
+  expect_error(capture.output(plot(fitObs)), NA, label = "plot(fitObs)")
+
 })

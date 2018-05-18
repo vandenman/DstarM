@@ -135,7 +135,7 @@ Returns a list of class \code{DstarM.fitD} that contains:
 \item{ncondition}{Numeric scalar. The number of conditions}
 \item{var.data}{Numeric vector. The variance of each condition-response pair. There are as many values as hypothesized nondecision densities.}
 \item{var.m}{Numeric vector. The variance of the model distributions. There are as many values as hypothesized nondecision densities.}
-\item{restrMat}{Numeric matrix. Contains the restrictions used.}
+\item{restr.mat}{Numeric matrix. Contains the restrictions used.}
 \item{splits}{Numeric vector. Equal to the input argument with the same name.}
 \item{n}{Numeric scalar. The total number of observations.}
 \item{DstarM}{Logical. Equal to the input argument with the same name.}
