@@ -25,7 +25,6 @@ test_that("simulation works", {
 })
 
 test_that("estDstarM useRcpp = FALSE works", {
-
   skip_on_cran()
   fitD <- estDstarM(data = dat, tt = tt, fixed = fixed, verbose = 0)
 	expect_equal2(
@@ -59,7 +58,8 @@ test_that("estND works", {
       c(3.25486872725596e-08, 4.94098337050759, 0.0543616639789932,
         1.49766131273096e-07, 1.55420026887307e-08, 0.00465478393093598,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-      .Dim = c(26L, 1L))
+      .Dim = c(26L, 1L)),
+    tol = 1e-3
   )
 })
 
@@ -88,6 +88,9 @@ test_that("estObserved works", {
         5.54580763528876e-10, 1.69972748294523e-10, 5.23081757647044e-11,
         1.61591328553273e-11, 5.00931757947714e-12, 1.55797896370483e-12
       ), .Dim = c(26L, 2L)),
+    # higher tolerance since the floating point error
+    # of estDstarM and estND accumulates here.
+    tol = 1e-3,
     label = "estObserved same time grid"
   )
 
@@ -107,6 +110,7 @@ test_that("rtDescriptives works", {
 														  												   												  												   "condition", "response")), responses = c("lower", "upper")), .Names = c("counts",
 														  												   												  												   																		"props", "responses"), class = "DstarM")
 	)
+	expect_error(capture.output(print(obj)), NA, label = "print(rtDescriptives)")
 
 })
 
@@ -193,13 +197,13 @@ test_that("getPdf works", {
 
 test_that("methods work", {
 
-  # expect_output(print(1))
   expect_error(capture.output(print(fitD)), NA, label = "print(fitD)")
   expect_error(capture.output(print(fitND)), NA, label = "print(fitND)")
-  expect_error(capture.output(print(fitND)), NA, label = "print(fitObs)")
-  grDevices::pdf(NULL)
+  expect_error(capture.output(print(fitObs)), NA, label = "print(fitObs)")
+  expect_error(capture.output(coef(fitD)), NA, label = "coef(fitD)")
+  expect_error(capture.output(summary(fitD)), NA, label = "summary(fitD)")
   expect_error(capture.output(plot(fitD)), NA, label = "plot(fitD)")
   expect_error(capture.output(plot(fitND)), NA, label = "plot(fitND)")
-  expect_error(capture.output(plot(fitND)), NA, label = "plot(fitObs)")
-  dev.off()
+  expect_error(capture.output(plot(fitObs)), NA, label = "plot(fitObs)")
+
 })
