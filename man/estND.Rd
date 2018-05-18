@@ -6,7 +6,7 @@
 \usage{
 estND(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1,
   lower.bound = 0, Optim = list(), verbose = TRUE, dist = NULL, NDindex,
-  max = 100, useRcpp = FALSE)
+  max = 100, useRcpp = TRUE)
 }
 \arguments{
 \item{res}{an object of class \code{D*M}.}
@@ -39,9 +39,10 @@ then corresponds to parameters for one nondecision distribution and should consi
 \code{\link{DEoptim.control}}.
 Defaults to \code{Optim = list(reltol = 1e-6, itermax = 1e4, steptol = 200, CR = .9, trace = 0)}.}
 
-\item{verbose}{Logical, should the function return text output on the current status of the estimation procedure.
-As the estimation can take 30+ minutes this defaults to yes.
-If FALSE, the analysis will be somewhat faster.}
+\item{verbose}{Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.
+Estimation will speed up if set to 0. If nonzero, \code{Optim$trace} will be
+forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
+printing of \code{DEoptim}, set \code{verbose} to 0 and specify \code{Optim$trace}.}
 
 \item{dist}{A matrix where columns represent nondecision distributions.
 If this argument is supplied then the objective function will be evaluated in these values.}
@@ -60,6 +61,10 @@ This gains speed at the cost of flexibility.}
 }
 \description{
 Estimate nondecision denstiy
+}
+\details{
+When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.
+Convergence can (and is usually) reached before then.
 }
 \examples{
 # simulate data with three stimuli of different difficulty.

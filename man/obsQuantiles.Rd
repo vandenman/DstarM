@@ -14,9 +14,9 @@ observations belong.}
 
 \item{probs}{vector of probabilities for which the corresponding values should be called}
 
-\item{what}{Character. \code{"cr"} if the quantiles are to be calculated per condition-response
-pair, \code{"c"} if the quantiles are to be calculated per condition, and
-\code{"r"} if the quantiles are to be calculated per response.}
+\item{what}{Character. \code{'cr'} if the quantiles are to be calculated per condition-response
+pair, \code{'c'} if the quantiles are to be calculated per condition, and
+\code{'r'} if the quantiles are to be calculated per response.}
 }
 \description{
 This function is nothing but a wrapper for \code{\link{quantile}}.

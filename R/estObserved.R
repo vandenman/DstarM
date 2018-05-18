@@ -57,53 +57,53 @@
 #'}
 
 #' @export
-estObserved <- function(resDecision, resND = NULL, data = NULL, interpolateND = FALSE, 
+estObserved <- function(resDecision, resND = NULL, data = NULL, interpolateND = FALSE,
   tt = NULL) {
   if (!is.DstarM.fitD(resDecision)) {
     stop("Argument resDecision must be of class \"DstarM\".", call. = FALSE)
   }
-  
+
   fit <- list()
-  
+
   if (resDecision$DstarM) {
     if (!is.DstarM.fitND(resND)) {
       stop("Argument resND must be of class \"DstarM\".", call. = FALSE)
     }
-    
+
     if (!is.null(tt)) {
       warning("The time grid (argument tt) cannot be modified after a DstarM analysis.")
     }
-    
+
     # get time grids
     ttDec <- resDecision$tt
     tt <- resND$tt  # everything will be conformed to nondecision grid
-    
+
     reCalcND <- FALSE
-    
+
     # get model densities --if they don't match recalculate model densities
     # at tt
     if (length(ttDec) != length(tt) || !isTRUE(all.equal(ttDec, tt))) {
       if (interpolateND) {
         # interpolate nondecision model
-        
+
         message("Decision model and Nondecision model estimated at different time grids. Interpolating Nondecision model to time grid of decision model.")
         reCalcND <- TRUE
         dd <- resDecision$modelDist
-        
+
       } else {
         # recalculate decision model at new grid
-        
+
         message("Decision model and Nondecision model estimated at different time grids. Recalculating decision model with time grid of nondecision model.")
         dd <- getPdfs(resDecision = resDecision, tt = tt, DstarM = TRUE)
-        
+
       }
     } else {
       # get model pdfs from input
-      
+
       dd <- resDecision$modelDist
-      
+
     }
-    
+
     nd <- resND$r.hat
     splits <- resDecision$splits
     if (reCalcND) {
@@ -114,22 +114,22 @@ estObserved <- function(resDecision, resND = NULL, data = NULL, interpolateND = 
       nd <- nd2
     }
     nd <- nd[nrow(nd):1, , drop = FALSE]  # reverse for convolution]
-    
+
     # error handling
     if (dim(nd)[2L] != length(unique(splits))) {
-      sign <- ifelse(dim(nd)[2L] < length(unique(splits)), "Less", 
+      sign <- ifelse(dim(nd)[2L] < length(unique(splits)), "Less",
         "More")
-      stop(sprintf("%s nondecision distributions (%d) than were assumed while estimating the decision model (%d).", 
-        sign, as.integer(dim(nd)[2L]), as.integer(length(unique(splits)))), 
+      stop(sprintf("%s nondecision distributions (%d) than were assumed while estimating the decision model (%d).",
+        sign, as.integer(dim(nd)[2L]), as.integer(length(unique(splits)))),
         call. = FALSE)
     }
-    
+
     # assign indices for nds to match dds this converts splits from whatever
     # it is to 1, 2, ...  and then repeats each element twice since split is
     # per condition and not per condition-response pair.
-    idxND <- rep(apply(as.matrix(c(splits)), 1, function(x, eq) which(x == 
+    idxND <- rep(apply(as.matrix(c(splits)), 1, function(x, eq) which(x ==
       eq), eq = unique(c(splits))), each = 2)
-    
+
     by <- diff(tt)[1]  # for normalization
     idxC <- seq_along(tt)  # keep only this part of convolutions
     obs <- matrix(NA, length(tt), dim(dd)[2L])
@@ -138,42 +138,42 @@ estObserved <- function(resDecision, resND = NULL, data = NULL, interpolateND = 
     }
     # non approximated convolutions after all
     obs[obs <= 0] <- 0  #.Machine$double.xmin
-    
+
     fit$ND <- sapply(resND$GlobalOptimizer, function(x) x$optim$bestval)
     fit$Decision <- resDecision$GlobalOptimizer$optim$bestval
   } else {
     # traditional analysis
     if (is.null(tt)) {
-      
+
       tt <- resDecision$tt
       obs <- resDecision$modelDist
-      
+
     } else {
-      
+
       obs <- getPdfs(resDecision, tt, DstarM = resDecision$DstarM)
-      
+
     }
   }
   if (!is.null(data)) {
-    
+
     fit$chisq <- chisqFit(resObserved = obs, data = data, tt = tt)
-    
+
   } else if (!resDecision$DstarM) {
-    
+
     fit <- resDecision$GlobalOptimizer$optim$bestval
-    
+
   }
-  
+
   cor <- apply(obs, 2, simpson, x = tt)
   obsNorm <- obs %*% (diag(dim(obs)[2L])/cor)
   colnames(obsNorm) <- colnames(obs)
-  npar <- length(resDecision$Bestvals) - ifelse(!is.null(resDecision$fixed$fixedMat), 
+  npar <- length(resDecision$Bestvals) - ifelse(!is.null(resDecision$fixed$fixedMat),
     dim(resDecision$fixed$fixedMat)[2L], 0)
-  
+
   # observe any not observed conditions, makes later plotting easier
   obsIdx <- which(colSums(resDecision$g.hat) == 0)
-  res <- list(obsNorm = obsNorm, obs = obs, tt = tt, fit = fit, npar = npar, 
-    obsIdx = obsIdx, ncondition = resDecision$ncondition, resDecision = resDecision, 
+  res <- list(obsNorm = obsNorm, obs = obs, tt = tt, fit = fit, npar = npar,
+    obsIdx = obsIdx, ncondition = resDecision$ncondition, resDecision = resDecision,
     resND = resND, interpolateND = interpolateND)
   class(res) <- "DstarM.fitObs"
   return(res)
