@@ -50,34 +50,45 @@
 #'
 #'
 
+#' @importFrom rtdists ddiffusion
+
 # get Voss densities; returns vector of length t
 #' @export
 Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
   if (DstarM) {
     sz = pars[4L] * 2 * pars[1L] * min(c(pars[3L], 1 - pars[3L])) # rescale sz
     pars[3L] = pars[3L] * pars[1L] # rescale z
-    dist = abs(rtdists::ddiffusion(rt = t, response = boundary,
+    dist = abs(ddiffusion(rt = t, response = boundary,
                                    a = pars[1L], v = pars[2L], t0 = 0, z = pars[3],
                                    d = 0, sz = sz, sv = pars[5L], st0 = 0,
                                    precision = prec))
   } else {
     sz = pars[5L] * 2 * pars[1L] * min(c(pars[4L], 1 - pars[4L])) # rescale sz
     pars[4L] = pars[4L] * pars[1L] # rescale z
-    st0 = pars[7L] * 2 * pars[3L] # rescale st0 to % * max size
-    dist = abs(rtdists::ddiffusion(rt = t, response = boundary,
-                                   a = pars[1L], v = pars[2L], t0 = 0, z = pars[4L], # pars[3]
-                                   d = 0, sz = sz, sv = pars[6L], st0 = 0, # st0
+    st0 = pars[7L]# * 2 * pars[3L] # rescale st0 to % * max size
+    t0 <- pars[3L]
+    dist = abs(ddiffusion(rt = t, response = boundary,
+                                   a = pars[1L], v = pars[2L], t0 = t0, z = pars[4L], # pars[3]
+                                   d = 0, sz = sz, sv = pars[6L], st0 = st0, # st0
                                    precision = prec))
-    by = t[2L] - t[1L]
-    ND = rev(stats::dunif(t, pars[3L] - .5*st0, pars[3L] + .5*st0 + (by / 100) ))
-    if (any(ND != 0)) {
-      dist = zapsmall(customConvolveO(abs(dist), ND)[seq_along(t)], 13)
-    }
+    # dist = abs(rtdists::ddiffusion(rt = t, response = boundary,
+    #                                a = pars[1L], v = pars[2L], t0 = 0, z = pars[4L], # pars[3]
+    #                                d = 0, sz = sz, sv = pars[6L], st0 = 0, # st0
+    #                                precision = prec))
+    # by = t[2L] - t[1L]
+    # a <- t0
+    # b <- t0 + st0
+    # if (!(abs(a - b) <= by)) {
+    #   ND = rev(stats::dunif(t, t0, t0 + st0))
+    #   if (any(ND != 0)) {
+    #     # dist = zapsmall(customConvolveO(dist, by * ND)[seq_along(t)], 13)
+    #   }
+    # }
   }
   return(dist)
 }
 
-# This same function that uses customDdiffusion
+# This function that customDdiffusion rather than rtdists::ddiffusion
 # Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
 #   if (DstarM) {
 #     sz = pars[4L] * 2 * min(c(pars[3L], 1L - pars[3L])) # rescale sz

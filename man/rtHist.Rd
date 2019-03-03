@@ -4,8 +4,8 @@
 \alias{rtHist}
 \title{Make histograms of reaction time data}
 \usage{
-rtHist(data, what = "cr", layout = NULL, nms = NULL, ggplot = FALSE,
-  ...)
+rtHist(data, what = "cr", layout = NULL, nms = NULL,
+  ggplot = FALSE, ...)
 }
 \arguments{
 \item{data}{A reaction time dataset. Must be a dataframe with $rt, $condition

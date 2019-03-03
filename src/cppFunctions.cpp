@@ -234,9 +234,9 @@ arma::mat getVoss(arma::vec& rt, arma::mat& pars, const double& precision) {
 	// rescale parameters
 	// pars.row(7) /= pars.row(0); // z
 
-	arma::vec a(pars.n_cols);
-	arma::vec b(pars.n_cols);
-	double by = rt(1) - rt(0);
+	// arma::vec a(pars.n_cols);
+	// arma::vec b(pars.n_cols);
+	// double by = rt(1) - rt(0);
 
 	for (unsigned int i = 0; i < pars.n_cols; ++i) {
 		// sz
@@ -246,12 +246,13 @@ arma::mat getVoss(arma::vec& rt, arma::mat& pars, const double& precision) {
 			pars(4, i) *= 2.0 * (1.0 - pars(7, i));
 		}
 
-		a(i) = pars(2, i) - pars(6, i) * pars(2, i);
-		b(i) = pars(2, i) + pars(6, i) * pars(2, i);
+		// a(i) = pars(2, i) - pars(6, i) * pars(2, i);
+		// b(i) = pars(2, i) + pars(6, i) * pars(2, i);
 
-		pars(6, i) = 0;
-		pars(2, i) = 0;
-		// st0
+		// pars(6, i) = 0;
+		pars(2, i) += pars(6, i) / 2.0;
+		// pars(2, i) = 0;
+		// st0//
 		// pars(6, i) = 2.0 * pars(2, i);
 
 	}
@@ -283,21 +284,21 @@ arma::mat getVoss(arma::vec& rt, arma::mat& pars, const double& precision) {
 		// call VOSS code.
 		dfastdm(in_numvalues, in_params, in_RTs, in_precision, out_densities_u, out_densities_l);
 
-		if (b(i) == 0.0 || by > (b(i) - a(i))) { // conditions for absent nondecision pdf
+		// if (b(i) == 0.0 || by > (b(i) - a(i))) { // conditions for absent nondecision pdf
 
 			//Rcpp::Rcout << "no Conv\n" << std::endl;
-			dens.col(j) = abs(dens_low);
-			dens.col(j+1) = dens_upp;
+  	dens.col(j) = abs(dens_low);
+  	dens.col(j+1) = dens_upp;
 
-		} else { // manual convolution with uniform nd
+		// } //else { // manual convolution with uniform nd
 
 			//Rcpp::Rcout << "manual Conv\n" << std::endl;
 
-			arma::vec nondecisionPdf = dunifc(rt, a(i), b(i));
-			dens.col(j) = convolveC(abs(dens_low), nondecisionPdf);
-			dens.col(j+1) = convolveC(dens_upp, nondecisionPdf);
-
-		}
+		// 	arma::vec nondecisionPdf = dunifc(rt, a(i), b(i));
+		// 	dens.col(j) = convolveC(abs(dens_low), nondecisionPdf);
+		// 	dens.col(j+1) = convolveC(dens_upp, nondecisionPdf);
+		//
+		// }
 
 		// increment j
 		j += 2;
@@ -371,7 +372,7 @@ arma::mat getPdfC(arma::vec& tt, arma::mat pars, const arma::mat& mm, const bool
 
 	// switch zr around (see rtdists.h for description)
 	pars.row(8) = pars.row(4);
-    pars.shed_row(4);
+  pars.shed_row(4);
 
     //Rcpp::Rcout << "pars:\n" << pars << std::endl;
 

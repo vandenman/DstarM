@@ -4,8 +4,8 @@
 \alias{estObserved}
 \title{Estimate observed data density}
 \usage{
-estObserved(resDecision, resND = NULL, data = NULL, interpolateND = FALSE,
-  tt = NULL)
+estObserved(resDecision, resND = NULL, data = NULL,
+  interpolateND = FALSE, tt = NULL)
 }
 \arguments{
 \item{resDecision}{output of \code{\link{estDstarM}}.}

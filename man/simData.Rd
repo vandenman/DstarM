@@ -5,7 +5,8 @@
 \title{Simulate data from a given densitiy function via multinomial sampling}
 \usage{
 simData(n, pars, tt, pdfND, fun.density = Voss.density,
-  args.density = list(prec = 3), npars = 5, return.pdf = FALSE)
+  args.density = list(prec = 3), npars = 5, return.pdf = FALSE,
+  normalizePdfs = TRUE)
 }
 \arguments{
 \item{n}{Number of observations to be sampled}
@@ -15,7 +16,7 @@ simData(n, pars, tt, pdfND, fun.density = Voss.density,
 \item{tt}{time grid on which the density function will be evaluated. Responses not in this time grid cannot appear.}
 
 \item{pdfND}{either a vector of length tt specifying the nondecision density for all condition-response pairs,
-or a matrix where columns corresponds to the nondecision densities of condition-response pairs.}
+or a matrix where columns corresponds to the nondecision densities of condition-response pairs. Supplying \code{NULL} implies no nondecision distribution.}
 
 \item{fun.density}{Density function to use.}
 

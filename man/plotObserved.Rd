@@ -4,9 +4,9 @@
 \alias{plotObserved}
 \title{Plot quantiles of data against model implied quantiles.}
 \usage{
-plotObserved(resObserved, data, what = c("cr", "c", "r"), layout = NULL,
-  main = NULL, linesArgs = list(), ggplot = FALSE, prob = seq(0, 1,
-  0.01), probType = 3, ...)
+plotObserved(resObserved, data, what = c("cr", "c", "r"),
+  layout = NULL, main = NULL, linesArgs = list(), ggplot = FALSE,
+  prob = seq(0, 1, 0.01), probType = 3, ...)
 }
 \arguments{
 \item{resObserved}{output of \code{\link{estObserved}}.}

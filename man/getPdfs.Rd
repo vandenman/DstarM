@@ -4,8 +4,8 @@
 \alias{getPdfs}
 \title{(Re)Calculate model densities with given parameters and time grid}
 \usage{
-getPdfs(resDecision, tt, pars, DstarM = TRUE, fun.density = Voss.density,
-  args.density = list())
+getPdfs(resDecision, tt, pars, DstarM = TRUE,
+  fun.density = Voss.density, args.density = list())
 }
 \arguments{
 \item{resDecision}{output of \code{\link{estDstarM}}.}

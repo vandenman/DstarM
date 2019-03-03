@@ -92,6 +92,7 @@
 #' \item{fun.density}{Function. Equal to the input argument with the same name.}
 #' \item{fun.dist}{Function. Equal to the input argument with the same name.}
 #' \item{h}{Scalar. Equal to the input argument with the same name.}
+#' \item{densityMethod}{String or Function.}
 #' \item{args.density}{Named list. Equal to the input argument with the same name.}
 #' \item{args.dist}{Named list. Equal to the input argument with the same name.}
 #'
@@ -124,8 +125,8 @@
 #' @export
 estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     lower, upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE, splits = rep(0L,
-        (ncondition)), forceRestriction = TRUE, mg = NULL, h = 1, pars, fun.density = Voss.density,
-    args.density = list(), fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
+        (ncondition)), forceRestriction = TRUE, mg = NULL, h = 1, densityMethod = "Uniform",
+    pars, fun.density = Voss.density, args.density = list(), fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
     useRcpp = TRUE) {
 
     # Error handling
@@ -161,13 +162,13 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     # get defaults
     if (missing(lower) | missing(upper)) {
         if (DstarM) {
-            parnames <- c("a", "v", "z", "sz", "sv")
-            lower <- c(0.01, -6, 0.05, 0.01, 0)
-            upper <- c(2, 6, 0.95, 0.99, 10)
+            parnames <- c( "a", "v",  "z", "sz", "sv")
+            lower    <- c(0.01,  -6, 0.05, 0.01,    0)
+            upper    <- c(   2,   6, 0.95, 0.99,   10)
         } else {
-            parnames <- c("a", "v", "t0", "z", "sz", "sv", "st0")
-            lower <- c(0.01, -6, 0.1, 0.05, 0.01, 0, 0)
-            upper <- c(2, 6, 0.8, 0.95, 0.99, 10, 1)
+            parnames <- c( "a", "v", "t0",  "z", "sz", "sv", "st0")
+            lower    <- c(0.01,  -6,    0, 0.05, 0.01,    0,     0)
+            upper    <- c(   2,   6,    1, 0.95, 0.99,   10,     1)
         }
     } else {
         stopifnot(length(lower) == length(upper), all(lower < upper))
@@ -221,9 +222,24 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     n <- (ql <- lengths(rt)) %*% mm2
 
     if (is.null(mg)) {
-        # obtain data density
-        g <- getGhat(rt = rt, tt, ncondition, mm, by)
+        if (identical(densityMethod, "Uniform")) {
+            # obtain data density
+            g <- getGhat(rt = rt, tt, ncondition, mm, by)
+            convolveWithUniform <- TRUE
+
+        } else if (is.function(densityMethod)) {
+
+            g <- try({simplify2array(lapply(rt, densityMethod, tt = tt))})
+            if (inherits(g, "try-error"))
+                stop("densityMethod gave an error")
+            else if (dim(g) != c(length(tt), 2*ncondition))
+                stop("densityMethod gave a result of incorrect dimensions")
+            convolveWithUniform <- FALSE
+        } else {
+            stop("Incorrect argument supplied for densityMethod. Should")
+        }
     } else {
+        convolveWithUniform <- FALSE
         # if a model or data density is supplied
         errCheckDatamg(mg, tt, ncondition)
         g <- mg
@@ -244,13 +260,14 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     # density is supplied perhaps make it possible to also smooth? although
     # users can also do this themselves since they are already supplying
     # their own densities.
-    if (DstarM && is.null(mg)) {
+    if (convolveWithUniform && DstarM && is.null(mg)) {
         kernel <- rev(by * stats::dunif(tt, 0, h))
         for (i in 1:dim(g)[2L]) {
             g[, i] <- customConvolveO(as.double(g[, i]), kernel)[seq_along(tt)]
         }
         g[g < 0] <- 0
     }
+
     g <- g %*% (diag(dim(g)[2L])/rep(apply(g %*% mm, 2, simpson, x = tt),
         each = 2))
     colnames(g) <- names(rt)  # name columns of g after conditions for clarity
@@ -305,7 +322,12 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
     if (useRcpp) {
         argsList <- list(tt = tt, restr = restr.mat - 1, ii = ii - 1L, jj = jj -
             1L, mm = mm, mm2 = mm2, g = g, varData = var.data, ql = ql, DstarM = DstarM,
-            oscPdf = oscPdf, forceRestriction = forceRestriction, precision = 3)
+            oscPdf = oscPdf, forceRestriction = forceRestriction, precision = 3,
+            fixed = fixed$mat, anyFixed = fixed$anyFixed, fn = totalobjectiveC)
+        # argsList$fixed <- fixed
+        # argsList$fn <- totalobjectiveC
+        # argsList$fixed <- fixed$mat
+        # argsList$anyFixed <- fixed$anyFixed
     } else {
         # make every columnn of restr.mat temporarily a list
         restrList <- unlist(apply(restr.mat, 2, list), recursive = FALSE,
@@ -313,13 +335,16 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         argsList <- list(tt = tt, g = g, ql = ql, restr.mat = restrList, DstarM = DstarM,
             oscPdf = oscPdf, ii = ii, jj = jj, mm = mm, mm2 = mm2, fun.density = fun.density,
             args.density = args.density, fun.dist = fun.dist, args.dist = args.dist,
-            var.data = var.data, forceRestriction = forceRestriction, by = by,
-            parnames = names(lower))
+            var.data = var.data, forceRestriction = forceRestriction, by = by, fixed = fixed, all = FALSE,
+            fn = total.objective, parnames = names(lower))
+        # argsList$fixed <- fixed
+        # argsList$all <- FALSE
+        # argsList$fn <- total.objective
     }
+
+
     if (missing(pars)) {
         # change to is is.null(pars)?
-
-        argsList$fixed <- fixed
 
         # do differential evolution
         nrep <- ceiling((Optim$itermax - sum(Optim$steptol[1:(length(Optim$steptol) -
@@ -339,23 +364,20 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         oldval <- Inf
         nfeval <- 0  # number of function evaluations
         # add arguments for DEoptim to the list
-        if (useRcpp) {
-
-            argsList$fn <- totalobjectiveC
-            argsList$fixed <- fixed$mat
-            argsList$anyFixed <- fixed$anyFixed
-
-            # imposeFixations(argsList$fixed, lower, names(lower))
-            # imposeFixationsC(pars = lower, fixed = qq) browser() if (length(fixed)
-            # == 0) { argsList$anyFixed = FALSE argsList$fixed = matrix(1, 1, 1) #
-            # c++ does not accept NULL } else { argsList$anyFixed = TRUE
-            # argsList$fixed = fixed2Rcpp(argsList$fixed, lower) }
-
-        } else {
-            argsList$all <- FALSE
-            argsList$fn <- total.objective
-
-        }
+        # if (useRcpp) {
+        #
+        #
+        #
+        #     # imposeFixations(argsList$fixed, lower, names(lower))
+        #     # imposeFixationsC(pars = lower, fixed = qq) browser() if (length(fixed)
+        #     # == 0) { argsList$anyFixed = FALSE argsList$fixed = matrix(1, 1, 1) #
+        #     # c++ does not accept NULL } else { argsList$anyFixed = TRUE
+        #     # argsList$fixed = fixed2Rcpp(argsList$fixed, lower) }
+        #
+        # } else {
+        #
+        #
+        # }
         argsList$lower <- lower
         argsList$upper <- upper
 
@@ -471,11 +493,13 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
 
     } else {
         # calculate the objective function for a given set of parameters
-
+browser()
         argsList$pars <- pars
-        argsList$all <- TRUE
-        out <- list(objVals = do.call(total.objective, argsList), pars = pars,
-            Bestvals = pars)
+        # argsList$all <- TRUE
+        # restrList <- unlist(apply(restr.mat, 2, list), recursive = FALSE, use.names = FALSE)
+        # argsList$restr.mat <- restrList
+        idx <- names(argsList) %in% names(formals(argsList$fn))
+        out <- list(objVals = do.call(argsList$fn, argsList[idx]), pars = pars, Bestvals = pars)
 
     }
     # calculate model densities at parameter estimates
@@ -700,19 +724,14 @@ total.objective <- function(pars, tt, g, ql, restr.mat, fixed = NULL, DstarM = T
         }
         out <- rep(0, (length(ii)))
         for (l in 1:length(ii)) {
-            # args.dist$a = customConvolveO(g[, ii[l]], rev(m[,
-            # jj[l]]))[seq_along(tt)] args.dist$b = customConvolveO(g[, jj[l]],
-            # rev(m[, ii[l]]))[seq_along(tt)]
             args.dist$a <- customConvolveO(g[, ii[l]], by * rev(m[, jj[l]]))[seq_along(tt)]
             args.dist$b <- customConvolveO(g[, jj[l]], by * rev(m[, ii[l]]))[seq_along(tt)]
             out[l] <- do.call(fun.dist, args.dist) * 100 * (ql[ii[l]] + ql[jj[l]])/sum(ql)
         }
     }
-    if (all) {
-        # return unsummed distance vector for debugging purposes
+    if (all) { # return unsummed distance vector for debugging purposes
         return(out)
-    } else {
-        # return summed vector for differential evolution algorithm
+    } else { # return summed vector for differential evolution algorithm
         return(sum(out))
     }
 }

@@ -4,12 +4,13 @@
 \alias{estDstarM}
 \title{Do a D*M analysis}
 \usage{
-estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
-  upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
-  splits = rep(0L, (ncondition)), forceRestriction = TRUE, mg = NULL,
-  h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
-  useRcpp = TRUE)
+estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(),
+  lower, upper, Optim = list(), DstarM = TRUE, SE = 0,
+  oscPdf = TRUE, splits = rep(0L, (ncondition)),
+  forceRestriction = TRUE, mg = NULL, h = 1,
+  densityMethod = "Uniform", pars, fun.density = Voss.density,
+  args.density = list(), fun.dist = chisq, args.dist = list(tt = tt),
+  verbose = 1L, useRcpp = TRUE)
 }
 \arguments{
 \item{formula}{A formula object of the form:
@@ -106,6 +107,7 @@ Returns a list of class \code{DstarM.fitD} that contains:
 \item{fun.density}{Function. Equal to the input argument with the same name.}
 \item{fun.dist}{Function. Equal to the input argument with the same name.}
 \item{h}{Scalar. Equal to the input argument with the same name.}
+\item{densityMethod}{String or Function.}
 \item{args.density}{Named list. Equal to the input argument with the same name.}
 \item{args.dist}{Named list. Equal to the input argument with the same name.}
 }
