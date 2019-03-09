@@ -230,10 +230,16 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
         } else if (is.function(densityMethod)) {
 
             g <- try({simplify2array(lapply(rt, densityMethod, tt = tt))})
-            if (inherits(g, "try-error"))
+            if (inherits(g, "try-error")) {
                 stop("densityMethod gave an error")
-            else if (dim(g) != c(length(tt), 2*ncondition))
-                stop("densityMethod gave a result of incorrect dimensions")
+            } else if (!all(dim(g) == c(length(tt), 2*ncondition))) {
+                dg <- dim(g)
+                if (is.null(dg)) dg <- c(0L, 0L)
+                stop(sprintf(
+                    "densityMethod gave a result of incorrect dimensions. Expected c(length(tt), 2*ncondition) (%d, %d), but got (%d, %d)",
+                    length(tt), 2L*ncondition, dg[1L], dg[2L]
+                ))
+            }
             convolveWithUniform <- FALSE
         } else {
             stop("Incorrect argument supplied for densityMethod. Should")
@@ -493,7 +499,7 @@ estDstarM <- function(formula = NULL, data, tt, restr = NULL, fixed = list(),
 
     } else {
         # calculate the objective function for a given set of parameters
-browser()
+
         argsList$pars <- pars
         # argsList$all <- TRUE
         # restrList <- unlist(apply(restr.mat, 2, list), recursive = FALSE, use.names = FALSE)
