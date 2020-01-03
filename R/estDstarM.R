@@ -1,7 +1,8 @@
 #' Do a D*M analysis
 #'
 #' @param formula A formula object of the form:
-#' \code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.
+#' \code{binary response ~ reaction time} or
+#' \code{binary response ~ reaction time + condition}. If you have multiple conditions, transform these into a single column called condition.
 #' @param data A dataframe for looking up data specified in formula.
 #' For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
 #' a column named \code{response} containing at most 2 response options, and an

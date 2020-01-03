@@ -374,8 +374,6 @@ arma::mat getPdfC(arma::vec& tt, arma::mat pars, const arma::mat& mm, const bool
 	pars.row(8) = pars.row(4);
   pars.shed_row(4);
 
-  //Rcpp::Rcout << "pars:\n" << pars << std::endl;
-
 	// call Voss & Voss pdfs
 	arma::mat pdf = getVoss(tt, pars, precision);
 
