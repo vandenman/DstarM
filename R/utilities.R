@@ -107,7 +107,7 @@ getData <- function(formula, data, checks = TRUE, verbose = 0) {
   terms <- stats::terms.formula(formula, data = data)
   origNames <- rownames(attr(terms, "factors"))
   if (length(origNames) > 3) {
-    stop("More than 3 columns remained after specifying `model.frame(formula, data = data)`")
+    stop("More than 3 columns remained after specifying `model.frame(formula, data = data)`. If you have multiple variables indicating conditions, please transform these into a single variable. For example, data$condition = paste(data$condition1, data$condition2, ...)")
   } else if (length(origNames) == 2) {
     origNames[3] <- "condition"
     hasConditions <- FALSE
