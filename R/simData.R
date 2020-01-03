@@ -9,6 +9,7 @@
 #' @param return.pdf Logical, if TRUE \code{genData} returns a list containing the probability density function used and the data, if FALSE \code{genData} returns a dataframe with simulated data.
 #' @param pdfND either a vector of length tt specifying the nondecision density for all condition-response pairs,
 #' or a matrix where columns corresponds to the nondecision densities of condition-response pairs. Supplying \code{NULL} implies no nondecision distribution.
+#' @param normalizePdfs Logical, should the pdf of the nondecision distribution be normalized?
 #'
 #' @details Simulate data via multinomial sampling.
 #' The response options to sample from should be provided in \code{tt}.

@@ -39,6 +39,8 @@
 #' @param mg Supply a data density, usefull if a uniform kernel approximation does not suffice.
 #' Take care that densities of response categories within conditions are degenerate and therefore integrate to the proportion a category was observed (and not to 1).
 #' @param h bandwidth of a uniform kernel used to generate data based densities.
+#' @param densityMethod By default, a uniform kernal is used to obtain a density estimate, \code{densityMethod = "Uniform"}.
+#' However, a function may also be supplied that takes as arguments the reaction times and a grid and returns a matrix for \code{simplify2array(lapply(rt, densityMethod, tt = tt))}.
 #' @param pars Optional parameter vector to supply if one wishes to evaluate the objective
 #' function in a given parameter vector. Only used if \code{itermax} equal zero.
 #' @param fun.density Function used to calculate densities. See details.

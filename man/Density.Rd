@@ -22,8 +22,9 @@ Can be passed to the argument \code{densityMethod} of \code{\link{estDstarM}}. T
 example to use as custom smoothing function.
 }
 \examples{
-x <- rgamma(100, 1, 1)
+x <- rgamma(1e5, 1, 1)
 tt <- seq(0, 5, .01)
 d <- Density(x, tt)
-plot(dgamma(tt, 1, 1), DstarM:::Density(x, tt))
+hist(x, freq = FALSE)
+lines(tt, DstarM:::Density(x, tt))
 }

@@ -4,9 +4,17 @@
 \alias{simData}
 \title{Simulate data from a given densitiy function via multinomial sampling}
 \usage{
-simData(n, pars, tt, pdfND, fun.density = Voss.density,
-  args.density = list(prec = 3), npars = 5, return.pdf = FALSE,
-  normalizePdfs = TRUE)
+simData(
+  n,
+  pars,
+  tt,
+  pdfND,
+  fun.density = Voss.density,
+  args.density = list(prec = 3),
+  npars = 5,
+  return.pdf = FALSE,
+  normalizePdfs = TRUE
+)
 }
 \arguments{
 \item{n}{Number of observations to be sampled}
@@ -25,6 +33,8 @@ or a matrix where columns corresponds to the nondecision densities of condition-
 \item{npars}{Number of parameters \code{fun.density} must be evaluated with. If \code{length(pars) > npars} each \code{npars} values in \code{pars} will be seen as the parameter values of a condition.}
 
 \item{return.pdf}{Logical, if TRUE \code{genData} returns a list containing the probability density function used and the data, if FALSE \code{genData} returns a dataframe with simulated data.}
+
+\item{normalizePdfs}{Logical, should the pdf of the nondecision distribution be normalized?}
 }
 \value{
 A sorted dataframe where rows represent trials. It contains: a column named rt
