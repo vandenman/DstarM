@@ -62,13 +62,13 @@
 #'plotObserved(resObserved = resObs, data = dat, what = 'r', xlim = c(0, 1))
 #'}
 #' @export
-plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = NULL, 
-  main = NULL, linesArgs = list(), ggplot = FALSE, prob = seq(0, 1, 0.01), 
+plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = NULL,
+  main = NULL, linesArgs = list(), ggplot = FALSE, prob = seq(0, 1, 0.01),
   probType = 3, ...) {
   what <- match.arg(what)
-  if (!identical(ggplot, FALSE)) 
+  if (!identical(ggplot, FALSE))
     warning("Argument 'ggplot' is deprecated and will be ignored.")
-  
+
   formula <- resObserved$resDecision$formula
   data <- getData(formula, data)
   rtime <- data[["rtime"]]
@@ -76,7 +76,7 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
   condition <- data[["condition"]]
   # hasConditions <- data[['hasConditions']]
   data <- data[["data"]]
-  
+
   if (what == "cr") {
     # by condition-response pair
     rtList <- split(data[[rtime]], factor(paste(data[[condition]], data[[response]])))
@@ -93,7 +93,7 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
       # by response
       rtList <- split(data[[rtime]], factor(data[[response]]))
       val <- 1/ncondition
-      mm <- matrix(c(val, 0, 0, val), nrow = dim(resObserved$obsNorm)[2L], 
+      mm <- matrix(c(val, 0, 0, val), nrow = dim(resObserved$obsNorm)[2L],
         ncol = 2, byrow = TRUE)
     }
     dd <- resObserved$obsNorm %*% mm
@@ -105,8 +105,8 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
       # responses within columns
       layout <- matrix(1:length(rtList), nrow = 2)
     } else if (what == "c") {
-      # 
-      if (length(rtList)/2 != floor(length(rtList)/2) & floor(sqrt(length(rtList))) > 
+      #
+      if (length(rtList)/2 != floor(length(rtList)/2) & floor(sqrt(length(rtList))) >
         1) {
         p <- c(1, 1:length(rtList))
       } else {
@@ -120,10 +120,10 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
   } else {
     # Error Handling
     if ((dim(resObserved$obsNorm)[2L]%%length(unique(layout))) != 0) {
-      msg <- switch(what, cr = "condition-response pairs", c = "conditions", 
+      msg <- switch(what, cr = "condition-response pairs", c = "conditions",
         r = "responses")
-      warning(sprintf("Number of plots in layout (%d) is not a multiple of the number of %s (%d).", 
-        length(unique(layout)), msg, length(rtList)), call. = FALSE, 
+      warning(sprintf("Number of plots in layout (%d) is not a multiple of the number of %s (%d).",
+        length(unique(layout)), msg, length(rtList)), call. = FALSE,
         immediate. = TRUE)
     }
   }
@@ -131,15 +131,17 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
   # define Titles
   if (is.null(main)) {
     if (what == "cr") {
-      main <- apply(expand.grid(unique(data[[response]]), unique(data[[condition]])), 
-        1, function(x) paste0("Condition: ", x[2], "\nResponse: ", 
+      main <- apply(expand.grid(
+        sort(unique(data[[response]])),
+        sort(unique(data[[condition]]))),
+        1, function(x) paste0("Condition: ", x[2], "\nResponse: ",
           x[1]))
     } else {
-      main <- paste(ifelse(what == "c", "Condition:", "Response:"), 
+      main <- paste(ifelse(what == "c", "Condition:", "Response:"),
         names(rtList))
     }
     main <- paste0(main, " (N = ", lengths(rtList), ")")
-    main2 <- rep(paste("Unobserved", switch(what, cr = "condition-response pair", 
+    main2 <- rep(paste("Unobserved", switch(what, cr = "condition-response pair",
       c = "condition", r = "response")), length(skips))
   } else if (is.list(main)) {
     main2 <- main[[2]]
@@ -167,25 +169,25 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
   }
   # histogram defaults
   histArgs <- list(...)
-  histDefArgs <- list(xlab = ifelse(qq, "Model implied Quantiles", "Reaction Time"), 
-    ylab = ifelse(qq, "Observed Quantiles", "Density"), las = 1, bty = "n", 
+  histDefArgs <- list(xlab = ifelse(qq, "Model implied Quantiles", "Reaction Time"),
+    ylab = ifelse(qq, "Observed Quantiles", "Density"), las = 1, bty = "n",
     freq = FALSE, breaks = c(0, tt + (tt[2] - tt[1])/2))
   idx <- unlist(lapply(histArgs[names(histDefArgs)], is.null), use.names = FALSE)
   histArgs[names(histDefArgs)[idx]] <- histDefArgs[idx]
-  
+
   # lines defaults
-  linesDefArgs <- list(type = "b", lty = 2, pch = 1, col = "black", lwd = 1, 
+  linesDefArgs <- list(type = "b", lty = 2, pch = 1, col = "black", lwd = 1,
     x = tt)
   idx <- unlist(lapply(linesArgs[names(linesDefArgs)], is.null), use.names = FALSE)
   linesArgs[names(linesDefArgs)[idx]] <- linesDefArgs[idx]
-  
+
   # actual plotting
   rtIdx <- 1  # a second index for histograms
   layout(layout)
   for (i in seq_len(dim(dd)[2L])) {
     linesArgs$y <- dd[, i]
     if (i %in% skips) {
-      linesArgs[c("xlim", "ylim", "ylab", "xlab", "bty", "las")] <- c(histArgs[c("xlim", 
+      linesArgs[c("xlim", "ylim", "ylab", "xlab", "bty", "las")] <- c(histArgs[c("xlim",
         "ylim", "ylab", "xlab")], list("n", 1))
       linesArgs$main <- main2[which(i %in% skips)]
       do.call(graphics::plot, linesArgs)
@@ -207,6 +209,6 @@ plotObserved <- function(resObserved, data, what = c("cr", "c", "r"), layout = N
   }
   layout(1)
   return(invisible())
-  
+
 }
 

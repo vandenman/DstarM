@@ -41,7 +41,7 @@ if (FALSE) {
 }
 
 if (FALSE) {
-  tt <- seq(0, 5, .001)
+  tt <- seq(0, 5, .01)
 
   pars <- c(.8, 2, .5, .5, .5,  # condition 1
            .8, 3, .5, .5, .5,  # condition 2
@@ -52,7 +52,7 @@ if (FALSE) {
 
   # take delta-peak instead
   pdfND = 0*tt
-  pdfND[1] = 1000
+  pdfND[1] = 1/diff(tt)[1]
 
   # data = simData(n = 3e6, pars = pars, tt = tt, pdfND = pdfND, normalizePdfs = FALSE, return.pdf = TRUE)
   data = simData(n = 3e6, pars = parsTest, tt = tt, pdfND = NULL, normalizePdfs = FALSE, return.pdf = TRUE,
@@ -71,6 +71,8 @@ if (FALSE) {
   restr.ter <- rbind(restr,rep(8,3),rep(9,3))
 
   idx <- seq(1, length(tt), length.out = length(tt.est))
+
+
   res3b <- estDstarM(data = data$dat, tt = tt.est, restr = restr.ter, fixed = fixed, DstarM = FALSE,
                     useRcpp = FALSE, pars = parsTest)
   res3b$objVals
@@ -86,12 +88,12 @@ if (FALSE) {
                      mg = data$pdfUnnormalized[idx, ], useRcpp = FALSE, Optim = list(parallelType = 1))
   summary(res3true)
   res3data <- estDstarM(data = data$dat, tt = tt.est, restr = restr.ter, fixed = fixed, DstarM = FALSE,
-                     useRcpp = FALSE, Optim = list(parallelType = 1))
+                     useRcpp = FALSE, Optim = list(parallelType = 1), densityMethod = Density)
   summary(res3data)
   round(res3data$Bestvals, 2)
 
   res3dataDens <- estDstarM(data = data$dat, tt = tt.est, restr = restr.ter, fixed = fixed, DstarM = FALSE,
-                        useRcpp = FALSE, Optim = list(parallelType = 1), h = .1)
+                        useRcpp = FALSE, Optim = list(parallelType = 1), h = 7)
   summary(res3dataDens)
   round(res3dataDens$Bestvals, 2)
 beepr::beep(5)
