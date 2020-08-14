@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{upgradeDstarM}
 \alias{upgradeDstarM}
-\title{Upgrade a DstarM object for backwards compatability}
+\title{Upgrade a DstarM object for backwards compatibility}
 \usage{
 upgradeDstarM(x)
 }
@@ -13,5 +13,5 @@ upgradeDstarM(x)
 An object of class \code{DstarM.fitD}, \code{DstarM.fitND}, or \code{DstarM.fitObs}.
 }
 \description{
-Upgrade a DstarM object for backwards compatability
+Upgrade a DstarM object for backwards compatibility
 }

@@ -10,7 +10,7 @@ rtDescriptives(formula = NULL, data, plot = TRUE, verbose = TRUE)
 \item{formula}{A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}}
 
 \item{data}{A dataframe for looking up data specified in formula.
-For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
+For backwards compatibility this can also be with: a column named \code{rt} containing response times in ms,
 a column named \code{response} containing at most 2 response options, and an
 optional column named \code{condition} containing a numeric index as to which conditions
 observations belong.}

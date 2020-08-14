@@ -2,7 +2,7 @@
 % Please edit documentation in R/simData.R
 \name{simData}
 \alias{simData}
-\title{Simulate data from a given densitiy function via multinomial sampling}
+\title{Simulate data from a given density function via multinomial sampling}
 \usage{
 simData(
   n,
@@ -39,13 +39,13 @@ or a matrix where columns corresponds to the nondecision densities of condition-
 \value{
 A sorted dataframe where rows represent trials. It contains: a column named rt
 containing reaction times in seconds, a column named response containing either
-reponse option lower or upper, and a column named condition indicating which
+response option lower or upper, and a column named condition indicating which
 condition a trials belongs to. If \code{return.pdf} is TRUE it returns a list where the
 first element is the sorted dataframe, the second through the fifth elements are lists
 that contain densities used for simulating data.
 }
 \description{
-Simulate data from a given densitiy function via multinomial sampling
+Simulate data from a given density function via multinomial sampling
 }
 \details{
 Simulate data via multinomial sampling.

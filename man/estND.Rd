@@ -2,7 +2,7 @@
 % Please edit documentation in R/estND.R
 \name{estND}
 \alias{estND}
-\title{Estimate nondecision denstiy}
+\title{Estimate nondecision density}
 \usage{
 estND(
   res,
@@ -23,7 +23,7 @@ estND(
 \arguments{
 \item{res}{an object of class \code{D*M}.}
 
-\item{tt}{optional timegrid if the nondecision density is to be esimtated at a different grid than the model density.}
+\item{tt}{optional timegrid if the nondecision density is to be estimated at a different grid than the model density.}
 
 \item{data}{if \code{tt} is specified then the original dataset must be supplied too.}
 
@@ -72,7 +72,7 @@ procedure.}
 This gains speed at the cost of flexibility.}
 }
 \description{
-Estimate nondecision denstiy
+Estimate nondecision density
 }
 \details{
 When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.

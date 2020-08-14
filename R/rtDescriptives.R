@@ -2,7 +2,7 @@
 #'
 #' @param formula A formula object of the form: \code{binary response ~ reaction time + condition1 * condition2}
 #' @param data A dataframe for looking up data specified in formula.
-#' For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
+#' For backwards compatibility this can also be with: a column named \code{rt} containing response times in ms,
 #' a column named \code{response} containing at most 2 response options, and an
 #' optional column named \code{condition} containing a numeric index as to which conditions
 #' observations belong.
@@ -30,27 +30,27 @@
 
 #' @export
 rtDescriptives <- function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
-  
+
   data <- getData(formula, data)
   rtime <- data[["rtime"]]
   response <- data[["response"]]
   condition <- data[["condition"]]
   hasConditions <- data[["hasConditions"]]
   data <- data[["data"]]
-  
-  lenCR <- tapply(data[[rtime]], list(data[[condition]], data[[response]]), 
+
+  lenCR <- tapply(data[[rtime]], list(data[[condition]], data[[response]]),
     length)
   d <- dim(lenCR)
   lenC <- .rowSums(lenCR, m = d[1], n = d[2])
   lenR <- .colSums(lenCR, m = d[1], n = d[2])
-  
-  table <- list(counts = list(conditionResponse = lenCR, condition = lenC, 
-    response = lenR), props = list(conditionResponse = lenCR/lenC, condition = lenC/sum(lenC), 
+
+  table <- list(counts = list(conditionResponse = lenCR, condition = lenC,
+    response = lenR), props = list(conditionResponse = lenCR/lenC, condition = lenC/sum(lenC),
     response = lenR/sum(lenR)), responses = colnames(lenCR))
   class(table) <- "DstarM"
-  if (verbose) 
+  if (verbose)
     print(table)
-  
+
   if (hasConditions) {
     tmp <- sprintf("interaction(%s, %s)", response, condition)
     mapping <- ggplot2::aes_string(x = rtime, group = tmp, fill = tmp)
@@ -58,14 +58,14 @@ rtDescriptives <- function(formula = NULL, data, plot = TRUE, verbose = TRUE) {
     mapping <- ggplot2::aes_string(x = rtime, group = response, fill = response)
   }
   graph <- ggplot2::ggplot(data = data, mapping = mapping) + ggplot2::geom_density(alpha = 0.25)
-  
-  if (plot) 
+
+  if (plot)
     print(graph)
-  
+
   out <- list(table = table, graph = graph)
   class(out) <- "DstarM.Descriptives"
   return(invisible(out))
-  
+
 }
 
 

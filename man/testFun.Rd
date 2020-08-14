@@ -16,7 +16,7 @@ testFun(fun.density, lower, upper, args = list())
 \item{args}{Additional arguments for fun.density.}
 }
 \value{
-Returns TRUE if no errors occured, otherwise returns an error message
+Returns TRUE if no errors occurred, otherwise returns an error message
 }
 \description{
 Test fun.density with lower and upper bounds

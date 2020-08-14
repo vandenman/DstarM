@@ -5,7 +5,7 @@
 #' @param lower Lower bounds of the parameter space with which \code{fun.density} can be evaluated.
 #' @param upper Upper bounds of the parameter space with which \code{fun.density} can be evaluated.
 #'
-#' @return Returns TRUE if no errors occured, otherwise returns an error message
+#' @return Returns TRUE if no errors occurred, otherwise returns an error message
 #' @details A function that is called whenever a nondefault density function is passed to \code{DstarM}. It does some rough error checking.
 #'
 #' @export
@@ -32,16 +32,16 @@ testFun <- function(fun.density, lower, upper, args = list()) {
   args$boundary <- "lower"
   test[[4]] <- try(do.call(fun.density, args), silent = TRUE)
   if (!all(unlist(lapply(test, is.numeric)))) {
-    stop("testing fun.density with lower and upper bounds resulted in non-numeric output.", 
+    stop("testing fun.density with lower and upper bounds resulted in non-numeric output.",
       call. = FALSE)
   } else if (any(unlist(lapply(test, anyNA)))) {
-    stop("testing fun.density with lower and upper bounds resulted in NaN output.", 
+    stop("testing fun.density with lower and upper bounds resulted in NaN output.",
       call. = FALSE)
   } else if (any(lengths(test) != length(args$t))) {
-    stop("testing fun.density with lower and upper bounds resulted in output of wrong length.", 
+    stop("testing fun.density with lower and upper bounds resulted in output of wrong length.",
       call. = FALSE)
   } else if (any(unlist(lapply(test, function(x) any(x < 0))))) {
-    stop("testing fun.density with lower and upper bounds resulted in negative values.", 
+    stop("testing fun.density with lower and upper bounds resulted in negative values.",
       call. = FALSE)
   } else {
     return(TRUE)

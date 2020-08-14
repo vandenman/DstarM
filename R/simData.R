@@ -1,4 +1,4 @@
-#' Simulate data from a given densitiy function via multinomial sampling
+#' Simulate data from a given density function via multinomial sampling
 #'
 #' @param n Number of observations to be sampled
 #' @param pars Parameter values for the density function to be evaluated with. \code{length(pars)} must be a multiple of npars.
@@ -17,7 +17,7 @@
 #'
 #' @return A sorted dataframe where rows represent trials. It contains: a column named rt
 #' containing reaction times in seconds, a column named response containing either
-#' reponse option lower or upper, and a column named condition indicating which
+#' response option lower or upper, and a column named condition indicating which
 #' condition a trials belongs to. If \code{return.pdf} is TRUE it returns a list where the
 #' first element is the sorted dataframe, the second through the fifth elements are lists
 #' that contain densities used for simulating data.

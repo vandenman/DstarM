@@ -22,7 +22,7 @@ Calculate Mean of the nondecision distribution.
 \details{
 The object \code{res} can either be output from \code{estDstarM} or output from \code{estND}.
 If the former is supplied it is also necessary to supply the data used for the estimation.
-The mean will then be estimated by substracting the mean of the model densities from the mean of the data density.
+The mean will then be estimated by subtracting the mean of the model densities from the mean of the data density.
 If the latter is supplied than this is not required; the mean will be calculated by
 integrating the nondecision distribution.
 }

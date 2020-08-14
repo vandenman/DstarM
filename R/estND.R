@@ -1,7 +1,7 @@
-#' Estimate nondecision denstiy
+#' Estimate nondecision density
 #'
 #' @param res an object of class \code{D*M}.
-#' @param tt optional timegrid if the nondecision density is to be esimtated at a different grid than the model density.
+#' @param tt optional timegrid if the nondecision density is to be estimated at a different grid than the model density.
 #' @param data if \code{tt} is specified then the original dataset must be supplied too.
 #' @param h Optional smoothing parameter to be used when estimating the nondecision model on a
 #' different time grid than the decision model. If omitted, the smoothing parameter of the decision model
@@ -95,7 +95,7 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
     data <- data[["data"]]
 
     if (is.null(h)) {
-      # for backwards compatability.
+      # for backwards compatibility
       h <- 1
     }
     by <- unique(zapsmall(diff(tt)))
@@ -336,7 +336,7 @@ estND <- function(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 
     }
   }
   if (is.null(res[["conditionNames"]])) {
-    # to remove: backwards compatability
+    # to remove: backwards compatibility
     names(res.r) <- paste0("ND", 1:length(res.r))
   } else {
     u <- unique(res$splits)

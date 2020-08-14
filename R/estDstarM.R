@@ -3,7 +3,7 @@
 #' @param formula A formula object of the form:
 #' \code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.
 #' @param data A dataframe for looking up data specified in formula.
-#' For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
+#' For backwards compatibility this can also be with: a column named \code{rt} containing response times in ms,
 #' a column named \code{response} containing at most 2 response options, and an
 #' optional column named \code{condition} containing a numeric index as to which conditions
 #' observations belong.
@@ -24,7 +24,7 @@
 #' @param SE positive value, how many standard error to add to the variance to relax
 #' the variance restriction a bit.
 #' @param oscPdf Logical, if TRUE check for oscillations in calculated densities and
-#' remove densities with oscilations.
+#' remove densities with oscillations.
 #' @param Optim a named list with identical arguments to \code{\link{DEoptim.control}}.
 #' In addition, if \code{verbose} == TRUE \code{Optim$steptol} can be a vector, i.e.
 #' \code{c(200, 50, 10)} means: Do 200 iterations then check for convergence, do 50
@@ -35,7 +35,7 @@
 #' Identical values in two positions indicate that the conditions corresponding to the indices
 #' of those values have an identical nondecision distribution.
 #' @param forceRestriction if TRUE the variance restriction is enforced.
-#' @param mg Supply a data density, usefull if a uniform kernel approximation does not suffice.
+#' @param mg Supply a data density, useful if a uniform kernel approximation does not suffice.
 #' Take care that densities of response categories within conditions are degenerate and therefore integrate to the proportion a category was observed (and not to 1).
 #' @param h bandwidth of a uniform kernel used to generate data based densities.
 #' @param pars Optional parameter vector to supply if one wishes to evaluate the objective
@@ -49,7 +49,7 @@
 #' Estimation will speed up if set to 0. If set to TRUE, \code{Optim$trace} will be
 #' forced to 0, hereby disabling the build in printing of \code{DEoptim}. To enable the
 #' printing of \code{DEoptim}, set \code{verbose} to 0 and specify \code{Optim$trace}.
-#' \code{Optim}. If set to 1, ETA refers to the expected maximum time until completetion (when the iterations limit is reached).
+#' \code{Optim}. If set to 1, ETA refers to the expected maximum time until completion (when the iterations limit is reached).
 #' @param useRcpp Logical, setting this to true will make the objective function use an Rcpp implementation
 #' of \code{Voss.density} with the distance function \code{chisq}. This gains speed at the cost of flexibility.
 #'
@@ -673,7 +673,7 @@ total.objective <- function(pars, tt, g, ql, restr.mat, fixed = NULL, DstarM = T
     # account
     pars.list <- lapply(restr.mat, function(ind, pars) pars[ind], pars)
 
-    # get pdfs and check for oscilations
+    # get pdfs and check for oscillations
     m <- getPdf(pars.list = pars.list, tt = tt, DstarM = DstarM, mm = mm,
         oscPdf = oscPdf, fun.density = fun.density, args.density = args.density)
     # getPdf returns NULL if pdfs generated fail certain sanity checks

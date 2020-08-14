@@ -217,7 +217,7 @@ fixed2Rcpp <- function(fixed, nms) {
 }
 
 
-#' Upgrade a DstarM object for backwards compatability
+#' Upgrade a DstarM object for backwards compatibility
 #' @param x an object of class \code{D*M} or \code{DstarM}.
 #' @return An object of class \code{DstarM.fitD}, \code{DstarM.fitND}, or \code{DstarM.fitObs}.
 #'
