@@ -4,7 +4,6 @@
 \alias{estND}
 \title{Estimate nondecision denstiy}
 \usage{
-<<<<<<< HEAD
 estND(
   res,
   tt = NULL,
@@ -20,11 +19,6 @@ estND(
   max = 100,
   useRcpp = TRUE
 )
-=======
-estND(res, tt = NULL, data = NULL, h = res$h, zp = 5, upper.bound = 1,
-  lower.bound = 0, Optim = list(), verbose = TRUE, dist = NULL, NDindex,
-  max = 100, useRcpp = TRUE)
->>>>>>> now uses Rcpp by default
 }
 \arguments{
 \item{res}{an object of class \code{D*M}.}

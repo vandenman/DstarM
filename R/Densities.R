@@ -88,7 +88,7 @@ Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
   return(dist)
 }
 
-# This function that customDdiffusion rather than rtdists::ddiffusion
+# This function uess customDdiffusion rather than rtdists::ddiffusion
 # Voss.density = function(t, pars, boundary, DstarM = TRUE, prec = 3) {
 #   if (DstarM) {
 #     sz = pars[4L] * 2 * min(c(pars[3L], 1L - pars[3L])) # rescale sz

@@ -4,7 +4,6 @@
 \alias{estDstarM}
 \title{Do a D*M analysis}
 \usage{
-<<<<<<< HEAD
 estDstarM(
   formula = NULL,
   data,
@@ -21,7 +20,6 @@ estDstarM(
   forceRestriction = TRUE,
   mg = NULL,
   h = 1,
-  densityMethod = "Uniform",
   pars,
   fun.density = Voss.density,
   args.density = list(),
@@ -33,20 +31,7 @@ estDstarM(
 }
 \arguments{
 \item{formula}{A formula object of the form:
-\code{binary response ~ reaction time} or
-\code{binary response ~ reaction time + condition}. If you have multiple conditions, transform these into a single column called condition.}
-=======
-estDstarM(formula = NULL, data, tt, restr = NULL, fixed = list(), lower,
-  upper, Optim = list(), DstarM = TRUE, SE = 0, oscPdf = TRUE,
-  splits = rep(0L, (ncondition)), forceRestriction = TRUE, mg = NULL,
-  h = 1, pars, fun.density = Voss.density, args.density = list(),
-  fun.dist = chisq, args.dist = list(tt = tt), verbose = 1L,
-  useRcpp = TRUE)
-}
-\arguments{
-\item{formula}{A formula object of the form:
 \code{binary response ~ reaction time + condition1 * condition2 * ... conditionN}.}
->>>>>>> now uses Rcpp by default
 
 \item{data}{A dataframe for looking up data specified in formula.
 For backwards compatability this can also be with: a column named \code{rt} containing response times in ms,
@@ -98,9 +83,6 @@ Take care that densities of response categories within conditions are degenerate
 
 \item{h}{bandwidth of a uniform kernel used to generate data based densities.}
 
-\item{densityMethod}{By default, a uniform kernal is used to obtain a density estimate, \code{densityMethod = "Uniform"}.
-However, a function may also be supplied that takes as arguments the reaction times and a grid and returns a matrix for \code{simplify2array(lapply(rt, densityMethod, tt = tt))}.}
-
 \item{pars}{Optional parameter vector to supply if one wishes to evaluate the objective
 function in a given parameter vector. Only used if \code{itermax} equal zero.}
 
@@ -142,7 +124,6 @@ Returns a list of class \code{DstarM.fitD} that contains:
 \item{fun.density}{Function. Equal to the input argument with the same name.}
 \item{fun.dist}{Function. Equal to the input argument with the same name.}
 \item{h}{Scalar. Equal to the input argument with the same name.}
-\item{densityMethod}{String or Function.}
 \item{args.density}{Named list. Equal to the input argument with the same name.}
 \item{args.dist}{Named list. Equal to the input argument with the same name.}
 }
