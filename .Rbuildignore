@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^packrat/
+^\.Rprofile$
+^\workingExamples.R$
+^.github/
