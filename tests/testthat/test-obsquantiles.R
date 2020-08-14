@@ -9,7 +9,7 @@ test_that("obsquantiles works", {
   data <- simData(n = 1e3, pars = pars, tt = tt, pdfND = pdfND)
   probs <- seq(0, 1, .2)
   q <- obsQuantiles(data, probs = probs)
-  expect_equal2(
+  expect_equal(
     object = q,
     expected = structure(
       c(0.16, 0.24, 0.3, 0.33, 0.42, 0.87, 0.14, 0.28, 0.322,

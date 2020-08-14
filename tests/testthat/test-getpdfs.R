@@ -30,4 +30,5 @@ test_that("getPdf == getPdfC (2)", {
   m2 <- DstarM:::getPdfC(tt = tt, pars = pars, mm = mm, DstarM = FALSE, oscPdf = FALSE, precision = 3)
 
   expect_equal(m1, m2, label = "test")
+
 })

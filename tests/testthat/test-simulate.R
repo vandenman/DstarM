@@ -110,6 +110,14 @@ test_that("rtDescriptives works", {
 														  												   												  												   "condition", "response")), responses = c("lower", "upper")), .Names = c("counts",
 														  												   												  												   																		"props", "responses"), class = "DstarM")
 	)
+
+	f <- tempfile()
+	grDevices::pdf(f)
+	on.exit({
+	  if (file.exists(f))
+	    file.remove(f)
+	  dev.off()
+	})
 	expect_error(capture.output(print(obj)), NA, label = "print(rtDescriptives)")
 
 })
@@ -202,8 +210,17 @@ test_that("methods work", {
   expect_error(capture.output(print(fitObs)), NA, label = "print(fitObs)")
   expect_error(capture.output(coef(fitD)), NA, label = "coef(fitD)")
   expect_error(capture.output(summary(fitD)), NA, label = "summary(fitD)")
+
+  f <- tempfile()
+  grDevices::pdf(f)
+  on.exit({
+    if (file.exists(f))
+      file.remove(f)
+    dev.off()
+  })
   expect_error(capture.output(plot(fitD)), NA, label = "plot(fitD)")
   expect_error(capture.output(plot(fitND)), NA, label = "plot(fitND)")
   expect_error(capture.output(plot(fitObs)), NA, label = "plot(fitObs)")
 
 })
+

@@ -28,8 +28,6 @@ normalize <- function(x, tt, props = NULL) {
     stop("x contains missing, infinite, or negative values.")
   if (!is.null(props) && any(is.infinite(props), is.na(props), props < 0))
     stop("props contains missing, infinite, or negative values.")
-  if (nrow(x) != length(tt))
-    stop("number of rows of x should match length of tt.")
 
   norm <- diag(nc) / apply(x, 2L, simpson, x = tt)
   if (!is.null(props))
