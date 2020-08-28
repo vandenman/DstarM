@@ -4,3 +4,4 @@
 ^\.Rprofile$
 ^\workingExamples.R$
 ^.github/
+^CRAN-RELEASE$
