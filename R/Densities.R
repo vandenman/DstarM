@@ -50,6 +50,7 @@
 #'
 #'
 
+#' @importFrom Rcpp sourceCpp
 #' @importFrom rtdists ddiffusion
 
 # get Voss densities; returns vector of length t
