@@ -2,7 +2,15 @@ Package: DstarM
 Type: Package
 Title: Analyze Two Choice Reaction Time Data with the D*M Method
 Version: 0.5.0
-Author: Don van den Bergh, Stijn Verdonck, Francis Tuerlinckx
+Authors@R: c(
+  person(given = "Don", family = "van den Bergh", role = c("aut", "cre"),
+         email = "donvdbergh@hotmail.com",
+         comment = c(ORCID = "0000-0002-9838-7308")),
+  person(given = "Stijn", family = "Verdonck", role = "aut",
+         comment = c(ORCID = "0000-0002-2199-1072")),
+  person(given = "Francis", family = "Tuerlinckx", role = "aut",
+         comment = c(ORCID = "0000-0002-1775-7654"))
+  )
 Maintainer: Don van den Bergh <donvdbergh@hotmail.com>
 Description: A collection of functions to estimate parameters of a diffusion model via a D*M analysis. Build in models are: the Ratcliff diffusion model, the RWiener diffusion model, and Linear Ballistic Accumulator models. Custom models functions can be specified as long as they have a density function.
 License: GPL (>= 2)
