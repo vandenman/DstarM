@@ -41,14 +41,14 @@ at the cost of assuming that the density of the nondecision distribution is zero
 Increasing this bound can increase estimation speed,
 at the cost of assuming that the density of the nondecision distribution is zero past this value.}
 
-\item{Optim}{a named list with identical arguments to \code{\link{DEoptim.control}}.
+\item{Optim}{a named list with identical arguments to \code{\link[DEoptim]{DEoptim.control}}.
 In addition, if \code{verbose} == TRUE \code{Optim$steptol} can be a vector, i.e. \code{c(200, 50, 10)} means:
 Do 200 iterations then check for convergence, do 50 iterations then check for convergence,
 check every 10 iterations for convergence until itermax is reached.
 If there are multiple nondecision distributions to estimate, one can supply different estimation
 parameters for every nondecision distribution by supplying Optim as a list of lists. Every sublists
 then corresponds to parameters for one nondecision distribution and should consist of arguments for
-\code{\link{DEoptim.control}}.
+\code{\link[DEoptim]{DEoptim.control}}.
 Defaults to \code{Optim = list(reltol = 1e-6, itermax = 1e4, steptol = 200, CR = .9, trace = 0)}.}
 
 \item{verbose}{Numeric, should intermediate output be printed? Defaults to 1, higher values result in more progress output.

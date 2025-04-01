@@ -25,7 +25,7 @@
 #' the variance restriction a bit.
 #' @param oscPdf Logical, if TRUE check for oscillations in calculated densities and
 #' remove densities with oscillations.
-#' @param Optim a named list with identical arguments to \code{\link{DEoptim.control}}.
+#' @param Optim a named list with identical arguments to \code{\link[DEoptim]{DEoptim.control}}.
 #' In addition, if \code{verbose} == TRUE \code{Optim$steptol} can be a vector, i.e.
 #' \code{c(200, 50, 10)} means: Do 200 iterations then check for convergence, do 50
 #' iterations then check for convergence, check every 10 iterations for convergence until
@@ -67,7 +67,7 @@
 #' When specifying a custom density function it is probably also necessary to change the lower and upper bounds of the parameter space.
 #'
 #' For purposes of speed, the function can be run in parallel by providing the argument \code{Optim = list(parallelType = 1)}.
-#' See \code{\link{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
+#' See \code{\link[DEoptim]{DEoptim.control}} for details. Also, for Ratcliff models the objective function has been rewritten in Rcpp.
 #' This limits some functionality but does result in a faster estimation. Usage of Rcpp can be enabled via \code{useRcpp = TRUE}.
 #'
 #' When verbose is set to 1, the ETA is an estimated of the time it takes to execute ALL iterations.
@@ -76,7 +76,7 @@
 #' @return Returns a list of class \code{DstarM.fitD} that contains:
 #' \item{Bestvals}{Named numeric vector. Contains the best parameter estimates.}
 #' \item{fixed}{Numeric vector. Contains the best parameter estimates.}
-#' \item{GlobalOptimizer}{List. All output from the call to \code{\link{DEoptim}}}
+#' \item{GlobalOptimizer}{List. All output from the call to \code{\link[DEoptim]{DEoptim}}}
 #' \item{Debug}{List. contains the number of DEoptim iterations, the number of function evaluation of the objective function, and the maximum number of iterations.}
 #' \item{note}{String. A possible note that is used for summary purposes}
 #' \item{tt}{Numeric vector. Contains the time grid used.}

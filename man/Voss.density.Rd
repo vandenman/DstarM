@@ -24,7 +24,7 @@ if \code{DstarM == FALSE} then third index of \code{pars} contains the Ter, the 
 
 \item{prec}{Precision with which the density is calculated. Corresponds roughly to the number of decimals accurately calculated.}
 
-\item{...}{Other arguments, see \code{\link{dLBA}}}
+\item{...}{Other arguments, see \code{\link[rtdists]{dLBA}}}
 }
 \value{
 A numeric vector of length \code{length(t)} containing a density.
@@ -34,9 +34,9 @@ Calculate model density for a given set of parameters
 }
 \details{
 These functions are examples of what \code{fun.density} should look like.
-\code{Voss.density} is an adaptation of \code{\link{ddiffusion}},
-\code{LBA.density} is an adaptation of \code{\link{dLBA}}, and
-\code{wiener.density} is an adaptation of \code{\link{dwiener}}.
+\code{Voss.density} is an adaptation of \code{\link[rtdists]{ddiffusion}},
+\code{LBA.density} is an adaptation of \code{\link[rtdists]{dLBA}}, and
+\code{wiener.density} is an adaptation of \code{\link[RWiener]{dwiener}}.
 To improve speed one can remove error handling.
 Normally error handling is useful, however
 because differential evolution can result in an incredible number of

@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // simpsonC
 arma::vec simpsonC(const arma::vec& x, const arma::mat& fx);
 RcppExport SEXP _DstarM_simpsonC(SEXP xSEXP, SEXP fxSEXP) {

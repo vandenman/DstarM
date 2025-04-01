@@ -6,15 +6,15 @@
 #' @param boundary For which response option will the density be calculated? Either 'upper' or 'lower'.
 #' @param DstarM Logical, see \code{pars}.
 #' @param prec Precision with which the density is calculated. Corresponds roughly to the number of decimals accurately calculated.
-#' @param ... Other arguments, see \code{\link{dLBA}}
+#' @param ... Other arguments, see \code{\link[rtdists]{dLBA}}
 #'
 #'
 #' @return A numeric vector of length \code{length(t)} containing a density.
 #' @details
 #' These functions are examples of what \code{fun.density} should look like.
-#' \code{Voss.density} is an adaptation of \code{\link{ddiffusion}},
-#' \code{LBA.density} is an adaptation of \code{\link{dLBA}}, and
-#' \code{wiener.density} is an adaptation of \code{\link{dwiener}}.
+  #' \code{Voss.density} is an adaptation of \code{\link[rtdists]{ddiffusion}},
+#' \code{LBA.density} is an adaptation of \code{\link[rtdists]{dLBA}}, and
+#' \code{wiener.density} is an adaptation of \code{\link[RWiener]{dwiener}}.
 #' To improve speed one can remove error handling.
 #' Normally error handling is useful, however
 #' because differential evolution can result in an incredible number of
